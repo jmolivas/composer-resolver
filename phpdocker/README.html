@@ -58,7 +58,7 @@
 
 <h2>Services exposed outside your environment</h2>
 
-<p>You can access your application via <strong><code>localhost</code></strong>, if you're running the containers directly, or through <strong><code>192.168.33.241</code></strong> when run on a vm. nginx and mailhog both respond to any hostname, in case you want to add your own hostname on your <code>/etc/hosts</code></p>
+<p>You can access your application via <strong><code>localhost</code></strong>, if you're running the containers directly, or through <strong><code>192.168.33.57</code></strong> when run on a vm. nginx and mailhog both respond to any hostname, in case you want to add your own hostname on your <code>/etc/hosts</code></p>
 
 <table>
 <thead>
@@ -72,7 +72,7 @@
 <tr>
   <td>Webserver</td>
   <td><a href="http://localhost:56789">localhost:56789</a></td>
-  <td><a href="http://192.168.33.241">192.168.33.241</a></td>
+  <td><a href="http://192.168.33.57">192.168.33.57</a></td>
 </tr>
 </tbody>
 </table>
@@ -94,6 +94,11 @@
   <td>php-fpm</td>
   <td>composer-resolver-php-fpm</td>
   <td>9000</td>
+</tr>
+<tr>
+  <td>Redis</td>
+  <td>composer-resolver-redis</td>
+  <td>6379 (default)</td>
 </tr>
 </tbody>
 </table>

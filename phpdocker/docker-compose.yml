@@ -2,6 +2,10 @@
 #                          Generated on phpdocker.io                          #
 ###############################################################################
 
+composer-resolver-redis:
+  image: phpdockerio/redis:latest
+  container_name: composer-resolver-redis
+
 composer-resolver-webserver:
   image: phpdockerio/nginx:latest
   container_name: composer-resolver-webserver
@@ -20,3 +24,5 @@ composer-resolver-php-fpm:
   volumes:
     - ..:/var/www/composer-resolver
     - ./php-fpm/php-ini-overrides.ini:/etc/php/7.0/fpm/conf.d/99-overrides.ini
+  links:
+    - composer-resolver-redis
