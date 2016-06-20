@@ -110,3 +110,9 @@ Resolver is to resolve a given `composer.json` into a valid
 run longer for no reason. That's why Composer Resolver provides it's own
 installer that does something like a `composer update --dry-run` while
 still writing the `composer.lock` file.
+
+## Run
+
+```
+docker-compose up -d
+```

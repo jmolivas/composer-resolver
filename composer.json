@@ -17,11 +17,16 @@
         "php": "^7.0",
         "silex/silex": "^2.0",
         "composer/composer": "^1.0",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "predis/service-provider": "dev-master",
+        "monolog/monolog": "^1.19",
+        "symfony/monolog-bridge": "^3.1"
     },
     "autoload": {
         "psr-4": {
             "Toflar\\ComposerResolver\\": "src"
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

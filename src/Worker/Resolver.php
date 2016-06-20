@@ -1,6 +1,6 @@
 <?php
 
-namespace Toflar\ComposerResolver;
+namespace Toflar\ComposerResolver\Worker;
 
 
 use Composer\Factory;
