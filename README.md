@@ -32,17 +32,12 @@ Content-Type: application/json; charset=UTF-8
 
 {
     "jobId": "5241c3603853e648127910e71ea235b7",
-    "status" "waiting",
-    "currentWaitingTime": 150
+    "status" "waiting"
 }
 ```
 
 You can verify for correct creation by checking both, th `201 Created`
 http status as well as the `status` field in the content.
-
-The value `currentWaitingTime` is calculated based on the last requests
-and contains the number of **seconds** you have to wait approximately
-until it is your job's turn.
 
 You can then `GET` the results or the current state of your job by
 sending a `GET` request to `/jobs/5241c3603853e648127910e71ea235b7`.
@@ -56,16 +51,14 @@ Content-Type: application/json; charset=UTF-8
 
 {
     "jobId": "5241c3603853e648127910e71ea235b7",
-    "status" "waiting",
-    "currentWaitingTime": 118
+    "status" "waiting"
 }
 ```
 
 As long as your job is waiting, you'll get the `202 Accepted` http
 status.
 
-Notice that the `currentWaitingTime` will be recalculated but the
-`status` is still `waiting`.
+Notice that the `status` is still `waiting`.
 
 As soon as your job is being processed but has not yet finished, your
 response will look like this:
@@ -81,8 +74,7 @@ Content-Type: application/json; charset=UTF-8
 ```
 
 Notice that you still get the `202 Accepted` status but the status is
-`running` and you don't have any `currentWaitingTime` anymore, as your
-job is being process right now.
+`running`.
 
 As soon as your job has finished, you won't get any job information
 anymore but the whole `composer.lock` instead. The final indicator here

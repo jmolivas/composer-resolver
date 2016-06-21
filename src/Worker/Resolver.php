@@ -2,52 +2,13 @@
 
 namespace Toflar\ComposerResolver\Worker;
 
-
 use Composer\Factory;
 use Composer\Installer;
 use Composer\IO\NullIO;
-use Predis\Client;
-use Symfony\Component\HttpFoundation\Request;
+use Toflar\ComposerResolver\Job;
 
 class Resolver
 {
-    /**
-     * Redis Client
-     * @var Client
-     */
-    private $client;
-
-    /**
-     * Resolver constructor.
-     *
-     * @param Client $client
-     */
-    public function __construct(Client $client)
-    {
-        $this->client = $client;
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return string
-     */
-    public function post(Request $request) : string
-    {
-
-        return 'you posted';
-    }
-
-    /**
-     * @param string $jobId
-     *
-     * @return string
-     */
-    public function get(string $jobId) : string
-    {
-        return 'you wanted job: ' . $jobId;
-    }
-
     /**
      *
      */
@@ -60,5 +21,10 @@ class Resolver
         $install->setDumpAutoloader(false);
         $install->run();
 
+    }
+
+    public function resolve(Job $job)
+    {
+        var_dump($job->getAsArray());
     }
 }
