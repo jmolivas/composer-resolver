@@ -2,6 +2,12 @@
 
 namespace Toflar\ComposerResolver;
 
+/**
+ * Class Job
+ *
+ * @package Toflar\ComposerResolver
+ * @author  Yanick Witschi <yanick.witschi@terminal42.ch>
+ */
 class Job implements \JsonSerializable
 {
     const STATUS_QUEUED     = 'queued';
@@ -12,6 +18,13 @@ class Job implements \JsonSerializable
     private $status;
     private $payload;
 
+    /**
+     * Job constructor.
+     *
+     * @param string $jobId
+     * @param string $status
+     * @param string $payload
+     */
     public function __construct(
         string $jobId,
         string $status,
@@ -22,23 +35,33 @@ class Job implements \JsonSerializable
         $this->payload  = $payload;
     }
 
+    /**
+     * Gets the job id.
+     *
+     * @return string
+     */
     public function getJobId() : string
     {
         return $this->jobId;
     }
 
-    public function setJobId(string $jobId) : self
-    {
-        $this->jobId = $jobId;
-
-        return $this;
-    }
-
+    /**
+     * Gets the job status.
+     *
+     * @return string
+     */
     public function getStatus() : string
     {
         return $this->status;
     }
 
+    /**
+     * Sets the job status.
+     *
+     * @param string $status
+     *
+     * @return Job
+     */
     public function setStatus(string $status) : self
     {
         $this->status = $status;
@@ -46,21 +69,33 @@ class Job implements \JsonSerializable
         return $this;
     }
 
+    /**
+     * Gets the job payload.
+     *
+     * @return string
+     */
     public function getPayload() : string
     {
         return $this->payload;
     }
 
+    /**
+     * Sets the job payload.
+     *
+     * @param string $payload
+     *
+     * @return string
+     */
     public function setPayload(string $payload) : string
     {
         $this->payload = $payload;
     }
 
-    public function jsonSerialize() : array
-    {
-        return $this->getAsArray();
-    }
-
+    /**
+     * Get the job data as an array.
+     *
+     * @return array
+     */
     public function getAsArray() : array
     {
         return [
@@ -70,6 +105,23 @@ class Job implements \JsonSerializable
         ];
     }
 
+    /**
+     * Implements the JsonSerializable interface.
+     *
+     * @return array
+     */
+    public function jsonSerialize() : array
+    {
+        return $this->getAsArray();
+    }
+
+    /**
+     * Create a job from an array.
+     * 
+     * @param array $array
+     *
+     * @return Job
+     */
     public static function createFromArray(array $array) : self
     {
         return new static(
