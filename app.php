@@ -14,7 +14,7 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
 ]);
 
 $app['redis.jobs.queueKey'] = 'jobs-queue';
-$app['redis.jobs.ttl']      = 3600;
+$app['redis.jobs.ttl']      = 600; // 10 Minutes by default
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(
@@ -22,6 +22,8 @@ $app->register(new Silex\Provider\MonologServiceProvider(), array(
 ));
 
 // Resolver
-$app['composer-resolver'] = new \Toflar\ComposerResolver\Worker\Resolver();
+$app['composer-resolver'] = new \Toflar\ComposerResolver\Worker\Resolver(
+    __DIR__ . '/jobs'
+);
 
 return $app;

@@ -54,7 +54,7 @@ class JobsController
     {
         $composerJson = $request->getContent();
         $errors = $this->validateComposerJsonSchema($composerJson);
-        if (0 !== $errors) {
+        if (0 !== count($errors)) {
             return new JsonResponse([
                 'msg'       => 'Your provided composer.json does not comply with the composer.json schema!',
                 'errors'    => $errors
@@ -71,13 +71,14 @@ class JobsController
         // Create the job
         $jobId = uniqid();
         $job   = new Job($jobId, Job::STATUS_QUEUED, $composerJson);
-        $this->redis->setex('jobs:' . $job->getJobId(), $this->ttl, json_encode($job));
+        $this->redis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
+        $this->redis->rpush($this->queueKey, [$job->getId()]);
 
         return new JsonResponse(
             $this->prepareResponseData($job),
             201,
             ['Location' => $this->urlGenerator->generate('jobs_get', [
-                'jobId' => $job->getJobId()
+                'jobId' => $job->getId()
             ])]
         );
     }
@@ -89,20 +90,86 @@ class JobsController
      *
      * @return Response
      */
-    public function getAction(string $jobId) : Response
+    public function getAction($jobId) : Response // Silex does not yet support PHP7 argument resolving (no type hint here!)
     {
-        $jobData = $this->redis->get('jobs:' . $jobId);
-        if (null === $jobData) {
+        $job = $this->fetchJob($jobId);
+
+        if (null === $job) {
             return new Response('Job not found.', 404);
         }
 
-        $job = Job::createFromArray(json_decode($jobData, true));
-        $status = Job::STATUS_FINISHED === $job->getStatus() ? 200 : 202;
+        $httpStatus     = Job::STATUS_FINISHED === $job->getStatus() ? 200 : 202;
+        $data           = $this->prepareResponseData($job);
+
+        // Add locations for composer.lock and output
+        $data['links'] = [
+            'composerLock'  => $this->urlGenerator->generate('jobs_get_composer_lock', [
+                'jobId' => $job->getId()
+            ]),
+            'composerOutput'  => $this->urlGenerator->generate('jobs_get_composer_output', [
+                'jobId' => $job->getId()
+            ]),
+        ];
 
         return new JsonResponse(
-            $this->prepareResponseData($job),
-            $status
+            $data,
+            $httpStatus
         );
+    }
+
+    /**
+     * Returns the composer.lock for a given job id.
+     *
+     * @param string $jobId
+     *
+     * @return Response
+     */
+    public function getComposerLockAction($jobId) : Response // Silex does not yet support PHP7 argument resolving (no type hint here!)
+    {
+        $job = $this->fetchJob($jobId);
+
+        if (null === $job) {
+            return new Response('Job not found.', 404);
+        }
+
+        return new JsonResponse($job->getComposerLock());
+    }
+
+    /**
+     * Returns the composer output for a given job id.
+     *
+     * @param string $jobId
+     *
+     * @return Response
+     */
+    public function getComposerOutputAction($jobId) : Response // Silex does not yet support PHP7 argument resolving (no type hint here!)
+    {
+        $job = $this->fetchJob($jobId);
+
+        if (null === $job) {
+            return new Response('Job not found.', 404);
+        }
+
+        return new JsonResponse($job->getComposerOutput());
+    }
+
+    /**
+     * Fetch a job.
+     *
+     * @param string $jobId
+     *
+     * @return null|Job
+     */
+    private function fetchJob(string $jobId)
+    {
+        $jobData = $this->redis->get('jobs:' . $jobId);
+
+        if (null === $jobData) {
+
+            return null;
+        }
+
+        return Job::createFromArray(json_decode($jobData, true));
     }
 
     /**
@@ -143,7 +210,7 @@ class JobsController
      */
     private function validatePlatformConfig(string $composerJson) : bool
     {
-        $composerJsonData   = json_decode($composerJson);
+        $composerJsonData   = json_decode($composerJson, true);
 
         // Check for presence of platform config
         if (!is_array($composerJsonData['config']['platform'])) {
@@ -164,7 +231,7 @@ class JobsController
     private function prepareResponseData(Job $job) : array
     {
         return [
-            'jobId'     => $job->getJobId(),
+            'jobId'     => $job->getId(),
             'status'    => $job->getStatus()
         ];
     }

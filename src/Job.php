@@ -14,25 +14,27 @@ class Job implements \JsonSerializable
     const STATUS_PROCESSING = 'processing';
     const STATUS_FINISHED   = 'finished';
 
-    private $jobId;
+    private $id;
     private $status;
-    private $payload;
+    private $composerJson;
+    private $composerLock;
+    private $composerOutput;
 
     /**
      * Job constructor.
      *
-     * @param string $jobId
+     * @param string $id
      * @param string $status
-     * @param string $payload
+     * @param string $composerJson
      */
     public function __construct(
-        string $jobId,
+        string $id,
         string $status,
-        string $payload
+        string $composerJson
     ) {
-        $this->jobId    = $jobId;
-        $this->status   = $status;
-        $this->payload  = $payload;
+        $this->id           = $id;
+        $this->status       = $status;
+        $this->composerJson = $composerJson;
     }
 
     /**
@@ -40,9 +42,9 @@ class Job implements \JsonSerializable
      *
      * @return string
      */
-    public function getJobId() : string
+    public function getId() : string
     {
-        return $this->jobId;
+        return $this->id;
     }
 
     /**
@@ -70,25 +72,71 @@ class Job implements \JsonSerializable
     }
 
     /**
-     * Gets the job payload.
+     * Get the composer.json
      *
      * @return string
      */
-    public function getPayload() : string
+    public function getComposerJson() : string
     {
-        return $this->payload;
+        return $this->composerJson;
     }
 
     /**
-     * Sets the job payload.
+     * Set the composer.json
      *
-     * @param string $payload
+     * @param string $composerJson
+     */
+    public function setComposerJson(string $composerJson) : self
+    {
+        $this->composerJson = $composerJson;
+
+        return $this;
+    }
+
+    /**
+     * Get the composer.lock
      *
      * @return string
      */
-    public function setPayload(string $payload) : string
+    public function getComposerLock() : string
     {
-        $this->payload = $payload;
+        return (string) $this->composerLock;
+    }
+
+
+    /**
+     * Set the composer.lock
+     *
+     * @param string $composerLock
+     */
+    public function setComposerLock(string $composerLock) : self
+    {
+        $this->composerLock = $composerLock;
+
+        return $this;
+    }
+
+    /**
+     * Get the composer output
+     *
+     * @return string
+     */
+    public function getComposerOutput() : string
+    {
+        return $this->composerOutput;
+    }
+
+
+    /**
+     * Set the composer output
+     *
+     * @param string $composerOutput
+     */
+    public function setComposerOutput(string $composerOutput) : self
+    {
+        $this->composerOutput = $composerOutput;
+
+        return $this;
     }
 
     /**
@@ -99,9 +147,11 @@ class Job implements \JsonSerializable
     public function getAsArray() : array
     {
         return [
-            'jobId'     => $this->jobId,
-            'status'    => $this->status,
-            'payload'   => $this->payload
+            'id'                => $this->id,
+            'status'            => $this->status,
+            'composerJson'      => $this->composerJson,
+            'composerLock'      => $this->composerLock,
+            'composerOutput'    => $this->composerOutput,
         ];
     }
 
@@ -117,17 +167,27 @@ class Job implements \JsonSerializable
 
     /**
      * Create a job from an array.
-     * 
+     *
      * @param array $array
      *
      * @return Job
      */
     public static function createFromArray(array $array) : self
     {
-        return new static(
-            $array['jobId'],
+        $job = new static(
+            $array['id'],
             $array['status'],
-            $array['payload']
+            $array['composerJson']
         );
+
+        if (isset($array['composerLock'])) {
+            $job->setComposerLock((string) $array['composerLock']);
+        }
+
+        if (isset($array['composerOutput'])) {
+            $job->setComposerOutput((string) $array['composerOutput']);
+        }
+
+        return $job;
     }
 }
