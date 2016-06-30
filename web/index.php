@@ -2,6 +2,7 @@
 
 $app = require_once __DIR__ . '/../app.php';
 
+// Controller
 $app->register(new Silex\Provider\ServiceControllerServiceProvider());
 
 $app['jobs.controller'] = function() use ($app) {
@@ -16,4 +17,5 @@ $app['jobs.controller'] = function() use ($app) {
 $app->post('/jobs', 'jobs.controller:postAction')->bind('jobs_post');
 $app->get('/jobs/{jobId}', 'jobs.controller:getAction')->bind('jobs_get');
 
+// Run app
 $app->run();

@@ -10,6 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Toflar\ComposerResolver\Job;
 
+/**
+ * Class JobsController
+ *
+ * @package Toflar\ComposerResolver\Controller
+ * @author  Yanick Witschi <yanick.witschi@terminal42.ch>
+ */
 class JobsController
 {
     private $redis;
@@ -17,6 +23,14 @@ class JobsController
     private $queueKey;
     private $ttl;
 
+    /**
+     * JobsController constructor.
+     *
+     * @param Client                $redis
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param string                $queueKey
+     * @param int                   $ttl
+     */
     public function __construct(
         Client $redis,
         UrlGeneratorInterface $urlGenerator,
@@ -29,6 +43,13 @@ class JobsController
         $this->ttl          = $ttl;
     }
 
+    /**
+     * Post a composer.json file which will then get a job created for.
+     *
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function postAction(Request $request) : Response
     {
         $composerJson = $request->getContent();
@@ -61,7 +82,14 @@ class JobsController
         );
     }
 
-    public function getAction($jobId) : Response
+    /**
+     * Returns the information for a given job id.
+     *
+     * @param string $jobId
+     *
+     * @return Response
+     */
+    public function getAction(string $jobId) : Response
     {
         $jobData = $this->redis->get('jobs:' . $jobId);
         if (null === $jobData) {
@@ -77,6 +105,15 @@ class JobsController
         );
     }
 
+    /**
+     * Validates a composer.json string against the composer-schema.json
+     * and returns an array of errors in case there are any or an empty
+     * one if the json is valid.
+     *
+     * @param string $composerJson
+     *
+     * @return array
+     */
     private function validateComposerJsonSchema(string $composerJson) : array
     {
         $errors             = [];
@@ -95,6 +132,15 @@ class JobsController
         return $errors;
     }
 
+    /**
+     * As the composer resolver resolves a composer.json for a different project
+     * the provided composer.json file MUST include the platform configuration
+     * otherwise dependencies will be resolved completely pointless.
+     *
+     * @param string $composerJson
+     *
+     * @return bool
+     */
     private function validatePlatformConfig(string $composerJson) : bool
     {
         $composerJsonData   = json_decode($composerJson);
@@ -108,6 +154,13 @@ class JobsController
         return true;
     }
 
+    /**
+     * Prepare the default job response array.
+     *
+     * @param Job $job
+     *
+     * @return array
+     */
     private function prepareResponseData(Job $job) : array
     {
         return [
