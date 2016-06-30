@@ -2,6 +2,8 @@
 
 $app = require_once __DIR__ . '/../app.php';
 
+$writeln = function($ln) { echo $ln . "\n"; };
+
 while(true) {
     /* @var \Predis\Client $predis */
     $predis   = $app['predis'];
@@ -10,7 +12,7 @@ while(true) {
     /** @var \Toflar\ComposerResolver\Worker\Resolver $resolver */
     $resolver =  $app['composer-resolver'];
 
-    echo 'Worker checks for jobs in queue';
+    $writeln('Worker checks for jobs in queue');
 
     $job = $predis->blpop([$app['redis.jobs.queueKey']], 5); // Only check every 5 seconds
 
@@ -32,6 +34,6 @@ while(true) {
         // Finished
         $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
 
-        echo 'Finished working on job ' . $job->getId();
+        $writeln('Finished working on job ' . $job->getId());
     }
 }

@@ -150,7 +150,7 @@ class JobsController
             return new Response('Job not found.', 404);
         }
 
-        return new JsonResponse($job->getComposerOutput());
+        return new Response($job->getComposerOutput());
     }
 
     /**

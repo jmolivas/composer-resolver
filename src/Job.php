@@ -123,7 +123,7 @@ class Job implements \JsonSerializable
      */
     public function getComposerOutput() : string
     {
-        return $this->composerOutput;
+        return (string) $this->composerOutput;
     }
 
 

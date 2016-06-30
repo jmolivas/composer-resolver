@@ -5,10 +5,8 @@ namespace Toflar\ComposerResolver\Worker;
 use Composer\Factory;
 use Composer\Installer;
 use Composer\IO\IOInterface;
-use Composer\IO\NullIO;
 use Symfony\Component\Filesystem\Filesystem;
 use Toflar\ComposerResolver\Job;
-use Toflar\ComposerResolver\JobBridgeInput;
 
 /**
  * Class Resolver
@@ -41,16 +39,10 @@ class Resolver implements ResolverInterface
      */
     public function resolve(Job $job, IOInterface $io) : Job
     {
-        // Already a worker on it or done already.
-        if (Job::STATUS_QUEUED !== $job->getStatus()) {
-
-            return $job;
-        }
-
         // Create the composer.json in a temporary jobs directory where we
         // work on
         $jobDir         = $this->jobsDir . '/' . $job->getId();
-            $composerJson   =  $jobDir . '/' . 'composer.json';
+        $composerJson   =  $jobDir . '/' . 'composer.json';
         $composerLock   =  $jobDir . '/' . 'composer.lock';
 
         $fs = new Filesystem();

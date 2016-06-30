@@ -95,6 +95,9 @@ class JobIO extends NullIO implements IOInterface
 
         $this->job->setComposerOutput($currentOutput);
 
-        $this->onUpdate();
+        $onUpdate = $this->onUpdate;
+        if (is_callable($onUpdate)) {
+            $onUpdate();
+        }
     }
 }
