@@ -30,6 +30,7 @@ services:
         image: php:7-cli
         volumes:
             - ./:/var/www/composer-resolver
+            - ./docker/php.ini:/usr/local/etc/php/conf.d/composer-resolver.ini
         command: php /var/www/composer-resolver/bin/worker.php
         depends_on:
             - redis
