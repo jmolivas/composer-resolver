@@ -5,7 +5,6 @@ const source        = require('vinyl-source-stream');
 const buffer        = require('vinyl-buffer');
 const gutil         = require('gulp-util');
 const browserify    = require('browserify');
-const babel         = require('gulp-babel');
 const uglify        = require('gulp-uglify');
 const sourcemaps    = require('gulp-sourcemaps');
 const rename        = require('gulp-rename');
@@ -20,18 +19,15 @@ const production    = !!gutil.env.production;
 
 // Build bundle.js
 gulp.task('scripts', function () {
-    /*return browserify({
+    return browserify({
             entries: './app/js/main.js',
             debug: !production
         })
+        .ignore('electron')
         .transform('babelify', {presets: ['react', 'es2015']})
         .bundle()
         .pipe(source('./app/js/main.js'))
-        .pipe(buffer())*/
-    return gulp.src('./app/js/main.js')
-        .pipe(babel({
-            presets: ['react', 'es2015']
-        }))
+        .pipe(buffer())
         .pipe(production ? uglify() : gutil.noop())
         .pipe(rename('bundle.js'))
         .on('error', gutil.log)

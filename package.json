@@ -26,7 +26,6 @@
     "browserify": "^13.0.1",
     "electron-prebuilt": "^1.2.5",
     "gulp": "^3.9.1",
-    "gulp-babel": "^6.1.2",
     "gulp-clean-css": "^2.0.10",
     "gulp-concat": "^2.6.0",
     "gulp-postcss": "^6.1.1",

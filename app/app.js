@@ -2,6 +2,7 @@ const electron        = require('electron');
 const {app}           = electron;
 const {BrowserWindow} = electron;
 const ipc             = electron.ipcMain;
+const exec            = require('child_process').exec;
 
 let win;
 
@@ -32,6 +33,19 @@ app.on('activate', function() {
 });
 
 // Docker version
-ipc.on('get-docker-version-request', function (event, arg) {
-    event.sender.send('get-docker-version-reply', 'wanted!');
+ipc.on('get-docker-running-request', function (event) {
+    exec('docker info', (error, stdout, stderr) => {
+
+        dockerIsRunning = false;
+
+        if (null === error
+            && '' === stderr
+            && !stdout.includes('Cannot connect to the Docker daemon')
+            && stdout.includes('Server Version:')
+        ) {
+            dockerIsRunning = true
+        }
+
+        event.sender.send('get-docker-running-reply', dockerIsRunning);
+    });
 });
