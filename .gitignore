@@ -1,2 +1,4 @@
 /vendor
 /jobs
+/node_modules
+/app/bundles
