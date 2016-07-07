@@ -7,7 +7,9 @@ var AppComponent = React.createClass({
 
     getInitialState: function() {
         return {
-            dockerIsRunning: false
+            dockerIsRunning: false,
+            composerJson: '',
+            showDrop: false
         }
     },
 
@@ -24,12 +26,44 @@ var AppComponent = React.createClass({
         ipc.send('get-docker-running-request');
     },
 
+    handleDragEnter: function(e) {
+        e.preventDefault();
+        this.setState({showDrop: true});
+    },
+
+    handleDragEnd: function(e) {
+        e.preventDefault();
+        this.setState({showDrop: false});
+    },
+
+    handleDrop: function(e) {
+        e.preventDefault();
+        this.setState({showDrop: false});
+
+        var fileReader = new FileReader();
+
+        fileReader.onload = function(file) {
+            this.setState({composerJson: file.target.result})
+        }.bind(this);
+
+        fileReader.readAsText(e.dataTransfer.files[0]);
+    },
+
+    handleComposerJsonInput: function(e) {
+        this.setState({composerJson: e.target.value});
+    },
+
     render: function() {
 
         var label = this.state.dockerIsRunning ? 'Yes' : 'No';
+        var classes = ['app'];
+
+        if (this.state.showDrop) {
+            classes.push('show-drop');
+        }
 
         return (
-            <div>
+            <div className={classes.join(' ')} onDragOver={this.handleDragEnter} onDragLeave={this.handleDragEnd} onDrop={this.handleDrop}>
                 <p>Docker is available and running on your system: {label}</p>
                 <button onClick={this.checkForDocker}>Check for Docker again.</button>
                 <div className="container-fluid">
@@ -65,8 +99,8 @@ var AppComponent = React.createClass({
                             <h3>composer.json</h3>
                             <form role="form">
                                 <div className="form-group">
-                                    <label for="composerJson">Enter your composer.json here.</label>
-                                    <textarea className="form-control" id="composerJson" />
+                                    <label htmlFor="composerJson">Enter your composer.json here.</label>
+                                    <textarea ref="composerJson" className="form-control" id="composerJson" onChange={this.handleComposerJsonInput} value={this.state.composerJson} />
                                 </div>
                                 <button type="submit" className="btn btn-default">Submit</button>
                             </form>
