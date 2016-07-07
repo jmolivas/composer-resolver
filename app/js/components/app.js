@@ -1,7 +1,7 @@
 'use strict';
 
 const React         = require('react');
-const ipc           = electronRequire('electron').ipcRenderer;
+const api           = require('../api.js');
 
 var AppComponent = React.createClass({
 
@@ -14,16 +14,14 @@ var AppComponent = React.createClass({
     },
 
     componentDidMount: function() {
-        var self = this;
         this.checkForDocker();
-
-        ipc.on('get-docker-running-reply', function (event, arg) {
-            self.setState({dockerIsRunning: arg});
-        });
     },
 
     checkForDocker: function() {
-        ipc.send('get-docker-running-request');
+        api.request('is-docker-running', 'test')
+            .then(function (result) {
+                this.setState({dockerIsRunning: result});
+            }.bind(this));
     },
 
     handleDragEnter: function(e) {

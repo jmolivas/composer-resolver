@@ -2,13 +2,13 @@ const electron        = require('electron');
 const {app}           = electron;
 const {BrowserWindow} = electron;
 const ipc             = electron.ipcMain;
-const exec            = require('child_process').exec;
 
 let win;
 
 function createWindow() {
     win = new BrowserWindow({width: 1024, height: 768});
     win.loadURL(`file://${__dirname}/index.html`);
+    win.openDevTools();
 
     win.on('closed', function() {
         win = null;
@@ -32,20 +32,22 @@ app.on('activate', function() {
     }
 });
 
-// Docker version
-ipc.on('get-docker-running-request', function (event) {
-    exec('docker info', (error, stdout, stderr) => {
+// Run our little process APIs
+var apis = {
+    'is-docker-running':    require('./api/is-docker-running.js')
+};
 
-        dockerIsRunning = false;
+for (var name in apis) {
+    if (!apis.hasOwnProperty(name)) continue;
 
-        if (null === error
-            && '' === stderr
-            && !stdout.includes('Cannot connect to the Docker daemon')
-            && stdout.includes('Server Version:')
-        ) {
-            dockerIsRunning = true
-        }
-
-        event.sender.send('get-docker-running-reply', dockerIsRunning);
+    var api = apis[name];
+    ipc.on('composer-resolver-api-' + name + '-request', function (event, request) {
+        api.handleResponse(request.payload).then(function(response) {
+            event.sender.send('composer-resolver-api-' + name + '-response', {
+                requestId: request.requestId,
+                payload: response
+            });
+        });
     });
-});
+}
+
