@@ -118,7 +118,7 @@ var AppComponent = React.createClass({
         if (this.state.showDrop) {
             classes.push('show-drop');
         }
-        
+
         return (
             <div className={classes.join(' ')} onDragOver={this.handleDragEnter} onDragLeave={this.handleDragEnd} onDrop={this.handleDrop}>
                 <div className="container-fluid">
@@ -147,7 +147,7 @@ var AppComponent = React.createClass({
                             <h3>composer.json</h3>
                             <form role="form">
                                 <div className="form-group">
-                                    <label htmlFor="composerJson">Enter your composer.json here.</label>
+                                    <label htmlFor="composerJson">Enter your composer.json here (you can also just drag n drop!).</label>
                                     <textarea ref="composerJson" className="form-control" id="composerJson" onChange={this.handleComposerJsonInput} value={this.state.composerJson} />
                                 </div>
                                 <button type="submit" className="btn btn-default">Submit</button>
