@@ -5,7 +5,7 @@ const Promise   = require('bluebird');
 
 
 module.exports = {
-    handleResponse: function(requestData) {
+    handleResponse: function() {
 
         return new Promise(function(resolve, reject) {
 

@@ -18,7 +18,7 @@ var AppComponent = React.createClass({
     },
 
     checkForDocker: function() {
-        api.request('is-docker-running', 'test')
+        api.request('is-docker-running')
             .then(function (result) {
                 this.setState({dockerIsRunning: result});
             }.bind(this));

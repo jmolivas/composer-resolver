@@ -2,7 +2,7 @@
   "name": "composer-resolver",
   "version": "1.0.0",
   "description": "Composer Resolver Desktop App",
-  "main": "app/app.js",
+  "main": "app/main.js",
   "directories": {
     "test": "tests"
   },
