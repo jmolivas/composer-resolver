@@ -1,4 +1,5 @@
 const electron        = require('electron');
+const docker          = require(__dirname + '/docker.js');
 const {app}           = electron;
 const {BrowserWindow} = electron;
 const ipc             = electron.ipcMain;
@@ -34,11 +35,13 @@ app.on('activate', function() {
 
 // Run our little process APIs
 var apis = {
-    'is-docker-running':    require('./api/is-docker-running.js')
+    'get-docker-info': require(__dirname + '/api/get-docker-info.js')(docker)
 };
 
 for (var name in apis) {
-    if (!apis.hasOwnProperty(name)) continue;
+    if (!apis.hasOwnProperty(name)) {
+        continue;
+    }
 
     var api = apis[name];
     ipc.on('composer-resolver-api-' + name + '-request', function (event, request) {

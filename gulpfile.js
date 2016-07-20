@@ -54,7 +54,7 @@ gulp.task('default', ['scripts', 'styles']);
 // Watch task
 gulp.task('watch', function() {
     gulp.watch(['./app/js/**/*.js'], ['scripts']);
-    gulp.watch('./app/css/**/.scss', ['styles']);
+    gulp.watch('./app/css/**/*.scss', ['styles']);
 });
 
 // Build task
