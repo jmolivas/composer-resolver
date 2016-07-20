@@ -5,8 +5,10 @@ html, body, #app {
   min-width: 100%;
 }
 
-table td {
-  padding: 10px;
+table {
+  td, th {
+    padding: 10px;
+  }
 }
 
 @import "./../../node_modules/bootstrap/dist/css/bootstrap.min";
