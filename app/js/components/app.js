@@ -83,9 +83,9 @@ var AppComponent = React.createClass({
 
         tests.push({
             title:  'Version-Check',
-            descr:  'Please make sure you run at least version 1.11.0 of Docker!',
+            descr:  'Please make sure you run at least version 1.12.0-rc1 of Docker!',
             value:  serverVersion,
-            result: semver.valid(serverVersion) && semver.gt( serverVersion, '1.11.0') ? 'success' : 'error'
+            result: semver.valid(serverVersion) && semver.gt(serverVersion, '1.12.0-rc1') ? 'success' : 'error'
         });
 
         // Memory limit
