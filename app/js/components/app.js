@@ -10,16 +10,30 @@ var AppComponent = React.createClass({
         return {
             dockerInfo: {},
             oneTestFailing: false,
+            swarmIsRunning: false,
             composerJson: '',
             showDrop: false
         }
     },
 
     componentDidMount: function() {
+        var self = this;
+
         api.request('get-docker-info')
             .then(function (info) {
-                this.setState({dockerInfo: info});
-            }.bind(this));
+                self.setState({dockerInfo: info});
+                return info;
+            })
+            .then(function (info) {
+                return api.request('init-docker-swarm');
+            })
+            .then(function (initDockerSwarmResult) {
+                if (true === initDockerSwarmResult) {
+                    self.setState({swarmIsRunning: true});
+                }
+
+                return initDockerSwarmResult;
+            });
     },
 
     componentWillUpdate: function(nextProps, nextState) {
@@ -91,9 +105,17 @@ var AppComponent = React.createClass({
         // Memory limit
         tests.push({
             title:  'RAM Limit',
-            descr:  'Docker itself can be limited to a certain amount of RAM. Make sure you give it at least 2 GB!',
+            descr:  'Docker itself can be limited to a certain amount of RAM. Make sure you give Composer Resolver at least 2 GB!',
             value:  dockerInfo.MemoryLimit ? ((dockerInfo.MemTotal / 1073741824).toFixed(2) + ' GB') : 'unlimited',
             result: !dockerInfo.MemoryLimit || 2147483648 <= dockerInfo.MemTotal ? 'success' : 'error'
+        });
+
+        // Swarm is running
+        tests.push({
+            title:  'Swarm is running?',
+            descr:  'The Composer Resolver uses the Swarm features of Docker 1.12. The Docker Swarm must be up!',
+            value:  this.state.swarmIsRunning ? 'up' : 'down',
+            result: this.state.swarmIsRunning ? 'success' : 'error'
         });
 
         return tests;
