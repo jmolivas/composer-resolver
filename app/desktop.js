@@ -34,23 +34,19 @@ app.on('activate', function() {
 });
 
 // Run our little process APIs
-var apis = {
-    'get-docker-info': require(__dirname + '/api/get-docker-info.js')(docker)
-};
+var endpoints = {};
 
-for (var name in apis) {
-    if (!apis.hasOwnProperty(name)) {
-        continue;
+ipc.on('composer-resolver-api-request', function (event, request) {
+
+    if (undefined === endpoints[request.endpoint]) {
+        endpoints[request.endpoint] = require(__dirname + '/api/' + request.endpoint + '.js')(docker)
     }
 
-    var api = apis[name];
-    ipc.on('composer-resolver-api-' + name + '-request', function (event, request) {
-        api.handleResponse(request.payload).then(function(response) {
-            event.sender.send('composer-resolver-api-' + name + '-response', {
-                requestId: request.requestId,
-                payload: response
-            });
+    endpoints[request.endpoint].handleResponse(request.payload).then(function(response) {
+        event.sender.send('composer-resolver-api-response', {
+            requestId: request.requestId,
+            endpoint: request.endpoint,
+            payload: response
         });
     });
-}
-
+});
