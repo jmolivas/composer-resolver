@@ -1,0 +1,32 @@
+version: '2'
+
+services:
+    # API: Nginx
+    web:
+        build:
+            context: ./../
+            dockerfile: ./docker/web/Dockerfile
+        image: toflar/composer-resolver-web:latest
+        ports:
+            - '80'
+
+    # API: PHP 7.* with FPM SAPI on Alpine Linux Container
+    php-fpm:
+        build:
+            context: ./../
+            dockerfile: ./docker/php-fpm/Dockerfile
+        image: toflar/composer-resolver-php-fpm:latest
+
+    # API & Worker communication: Redis
+    redis:
+        image: redis:3.0-alpine
+        expose:
+            - '6379'
+
+    # Worker: PHP 7.* with CLI SAPI
+    worker:
+        build:
+            context: ./../
+            dockerfile: ./docker/worker/Dockerfile
+        image: toflar/composer-resolver-worker:latest
+        command: php /var/www/composer-resolver/bin/worker.php

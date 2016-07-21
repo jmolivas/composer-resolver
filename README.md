@@ -103,8 +103,56 @@ run longer for no reason. That's why Composer Resolver provides it's own
 installer that does something like a `composer update --dry-run` while
 still writing the `composer.lock` file.
 
-## Run
+## Run in production
+
+Make use of the Docker 1.12+ features and just deploy the service using the bundle
+`composer-resolver.dab` and the Docker built-in orchestration features.
+
+### Deploy
+
+Create a swarm first. Then run
 
 ```
-docker-compose up -d
+$ docker deploy composer-resolver
 ```
+
+or (`deploy` is just an alias for `stack deploy`)
+
+```
+$ docker stack deploy composer-resolver
+```
+
+That's it. Make sure you checkout the `web` service to publish the port 80 to
+the host machine.
+
+You can easily scale the service (most likely the workers) like this:
+
+```
+$ docker service scale composer-resolver_worker=40
+```
+
+
+## Development
+
+Development:
+
+```
+$ docker-compose up -d
+```
+
+Build:
+
+```
+$ docker-compose -f ./docker/docker-compose-production.yml build
+$ docker-compose -f ./docker/docker-compose-production.yml push
+$ docker-compose -f docker/docker-compose-production.yml bundle -o composer-resolver.dab
+```
+
+## Desktop App
+
+Part of this repository is an electron app that runs the the Docker containers
+as a service on your localhost and provides a simple interface showing you the
+status of Docker, taking a composer.json and returning a composer.lock file.
+You don't need this if you want to only run the resolver as - say - cloud solution.
+The app related files are not part of the Docker images. I did not split the
+projects into two repositories (yet) because of convenience.

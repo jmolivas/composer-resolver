@@ -1,0 +1,45 @@
+{
+  "Services": {
+    "php-fpm": {
+      "Image": "toflar/composer-resolver-php-fpm@sha256:e309e408adb282333244bfd83e67e84a9447f192d90f97444189f1c33908808c", 
+      "Networks": [
+        "default"
+      ]
+    }, 
+    "redis": {
+      "Image": "redis@sha256:215fa745788070c35e9494ee894b9de19b208f46adca076bbed5b1b963e7ec9c", 
+      "Networks": [
+        "default"
+      ], 
+      "Ports": [
+        {
+          "Port": 6379, 
+          "Protocol": "tcp"
+        }
+      ]
+    }, 
+    "web": {
+      "Image": "toflar/composer-resolver-web@sha256:72a91c44f0d9a52d27f6e61f504a9b41f9dbd3b9c5e1f6c33c9eef2af18e134a", 
+      "Networks": [
+        "default"
+      ], 
+      "Ports": [
+        {
+          "Port": 80, 
+          "Protocol": "tcp"
+        }
+      ]
+    }, 
+    "worker": {
+      "Args": [
+        "php", 
+        "/var/www/composer-resolver/bin/worker.php"
+      ], 
+      "Image": "toflar/composer-resolver-worker@sha256:3c8fdf49c8ab5a0fc09feac02227eefe15b9726d1be3c4eb8ca7a43374f4f9f1", 
+      "Networks": [
+        "default"
+      ]
+    }
+  }, 
+  "Version": "0.1"
+}
