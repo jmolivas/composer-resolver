@@ -9,7 +9,7 @@ var AppComponent = React.createClass({
     getInitialState: function() {
         return {
             dockerInfo: {},
-            oneTestFailing: false,
+            error: null,
             swarmIsRunning: false,
             composerJson: '',
             showDrop: false
@@ -22,24 +22,27 @@ var AppComponent = React.createClass({
         api.request('get-docker-info')
             .then(function (info) {
                 self.setState({dockerInfo: info});
-                return info;
+
+                if (self.isOneTestFailing(self.getTests(info))) {
+                    throw new Error('At least one test is failing.');
+                }
+
+                return null;
             })
-            .then(function (info) {
+            .then(function () {
                 return api.request('init-docker-swarm');
             })
             .then(function (initDockerSwarmResult) {
                 if (true === initDockerSwarmResult) {
                     self.setState({swarmIsRunning: true});
+                    return null;
                 }
 
-                return initDockerSwarmResult;
+                throw new Error('At least one test is failing.');
+            })
+            .catch(function(err) {
+                self.setState({error: err.message});
             });
-    },
-
-    componentWillUpdate: function(nextProps, nextState) {
-        nextState.oneTestFailing = this.isOneTestFailing(
-            this.getTests(nextState.dockerInfo)
-        );
     },
 
     handleDragEnter: function(e) {
@@ -82,12 +85,12 @@ var AppComponent = React.createClass({
         tests.push({
             title:  'Docker is up and running',
             descr:  'Please make sure Docker is installed and up and running!',
-            value:  undefined === dockerInfo.ServerVersion ? 'down' : 'up',
-            result: undefined !== dockerInfo.ServerVersion ? 'success' : 'error'
+            value:  null === dockerInfo ? 'down' : 'up',
+            result: null !== dockerInfo ? 'success' : 'error'
         });
 
         // If Docker is not running we can abort immediately
-        if (undefined === dockerInfo.ServerVersion) {
+        if (null === dockerInfo) {
 
             return tests;
         }
@@ -164,10 +167,15 @@ var AppComponent = React.createClass({
                             </table>
                         </div>
                     </div>
-                    <div className={"row" + (this.state.oneTestFailing ? ' hide' : '')}>
+                    <div className={"row" + (null !== this.state.error ? ' error' : '')}>
                         <div className="col-md-12">
                             <h3>composer.json</h3>
-                            <form role="form">
+
+                            <div className={"error-message" + (null === this.state.error ? ' hide' : '')}>
+                                <p>Cannot work properly due the following error:</p>
+                                <p>{this.state.error}</p>
+                            </div>
+                            <form role="form" className={"form" + (null !== this.state.error ? ' hide' : '')}>
                                 <div className="form-group">
                                     <label htmlFor="composerJson">Enter your composer.json here (you can also just drag n drop!).</label>
                                     <textarea ref="composerJson" className="form-control" id="composerJson" onChange={this.handleComposerJsonInput} value={this.state.composerJson} />

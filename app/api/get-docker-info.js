@@ -10,6 +10,7 @@ module.exports = function (docker) {
         return new Promise(function(resolve, reject) {
 
             docker.info(function(err, info) {
+                // Either the info or null if not started
                 resolve(info);
             });
         });
