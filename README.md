@@ -132,7 +132,7 @@ $ docker service scale composer-resolver_worker=40
 ```
 
 
-## Development
+## Development (PHP part)
 
 Development:
 
@@ -145,8 +145,22 @@ Build:
 ```
 $ docker-compose -f ./docker/docker-compose-production.yml build
 $ docker-compose -f ./docker/docker-compose-production.yml push
-$ docker-compose -f docker/docker-compose-production.yml bundle -o composer-resolver.dab
+$ docker-compose -f ./docker/docker-compose-production.yml bundle -o composer-resolver.dab
 ```
+
+## Development (Electron part)
+
+First, make sure your dependencies are up to date: `npm install`.
+
+Install electron globally because that will ease working with it: `npm install -g electron`
+
+Run the app by executing `electron ./app`
+
+## Building the Electron app
+
+Run `npm run dist`. The generated files reside within `./build`.
+See the [electron-builder](https://github.com/electron-userland/electron-builder) project for configuration options and prerequisites
+to e.g. package the app for multiple platforms.
 
 ## Desktop App
 
