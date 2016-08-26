@@ -4,19 +4,36 @@ const {app}           = electron;
 const {BrowserWindow} = electron;
 const ipc             = electron.ipcMain;
 
-let win;
+let win = null;
+let openUrl = '';
 
 function createWindow() {
+
+    var url = openUrl ? ('#' + openUrl) : '';
+
     win = new BrowserWindow({width: 1024, height: 768});
-    win.loadURL(`file://${__dirname}/index.html`);
+    win.loadURL('file://' + __dirname + '/index.html' + url);
     win.openDevTools();
 
     win.on('closed', function() {
         win = null;
+        openUrl = '';
     });
 }
 
+function onOpenUrlViaOwnProtocol(event, url) {
+    // 20 chars = composer-resolver://
+    openUrl = url.substr(20);
+
+    if (null !== win) {
+        win.webContents.send('composer-resolver-protocol', openUrl);
+    }
+}
+
+
 app.on('ready', createWindow);
+app.on('open-url', onOpenUrlViaOwnProtocol);
+
 app.on('window-all-closed', function() {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q

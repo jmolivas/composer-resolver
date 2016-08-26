@@ -3,6 +3,7 @@
 const React         = require('react');
 const semver        = require('semver');
 const api           = require('../api.js');
+const ipc           = electronRequire('electron').ipcRenderer;
 
 var AppComponent = React.createClass({
 
@@ -12,12 +13,22 @@ var AppComponent = React.createClass({
             error: null,
             swarmIsRunning: false,
             composerJson: '',
-            showDrop: false
+            showDrop: false,
+            protocolOutput: 'nothing'
         }
     },
 
     componentDidMount: function() {
         var self = this;
+
+        // Direct link input
+        if (window.location.hash) {
+            self.setState({protocolOutput: window.location.hash.substr(1)});
+        }
+
+        ipc.on('composer-resolver-protocol', function (event, message) {
+            self.setState({protocolOutput: message});
+        });
 
         api.request('get-docker-info')
             .then(function (info) {
@@ -148,6 +159,7 @@ var AppComponent = React.createClass({
             <div className={classes.join(' ')} onDragOver={this.handleDragEnter} onDragLeave={this.handleDragEnd} onDrop={this.handleDrop}>
                 <div className="container-fluid">
                     <div className="row">
+                        <div className="col-md-12">{this.state.protocolOutput}</div>
                         <div className="col-md-12">
                             <h3>Tests</h3>
                             <table>
