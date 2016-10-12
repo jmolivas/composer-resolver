@@ -9,6 +9,7 @@ $app['jobs.controller'] = function() use ($app) {
     return new \Toflar\ComposerResolver\Controller\JobsController(
         $app['predis'],
         $app['url_generator'],
+        $app['logger'],
         $app['redis.jobs.queueKey'],
         $app['redis.jobs.ttl']
     );

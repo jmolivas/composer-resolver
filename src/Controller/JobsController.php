@@ -4,6 +4,7 @@ namespace Toflar\ComposerResolver\Controller;
 
 use JsonSchema\Validator;
 use Predis\Client;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,7 @@ class JobsController
 {
     private $redis;
     private $urlGenerator;
+    private $logger;
     private $queueKey;
     private $ttl;
 
@@ -28,17 +30,20 @@ class JobsController
      *
      * @param Client                $redis
      * @param UrlGeneratorInterface $urlGenerator
+     * @param LoggerInterface       $logger
      * @param string                $queueKey
      * @param int                   $ttl
      */
     public function __construct(
         Client $redis,
         UrlGeneratorInterface $urlGenerator,
+        LoggerInterface $logger,
         string $queueKey,
         int $ttl
     ) {
         $this->redis        = $redis;
         $this->urlGenerator = $urlGenerator;
+        $this->logger       = $logger;
         $this->queueKey     = $queueKey;
         $this->ttl          = $ttl;
     }
