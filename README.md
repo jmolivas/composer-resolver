@@ -6,9 +6,9 @@ with which you can later fetch the resulting `composer.lock` file.
 
 ## Why would one need this?
 
-Composer needs a lot of time and a lot of memory. Some applications
-out there rely on `composer update` commands directly on devices
-(webservers, embedded systems etc.) that do not provide the necessary
+Composer needs a lot of memory. Some applications out there rely
+on `composer update` commands directly on devices (webservers,
+embedded systems etc.) that do not provide the necessary
 resources. Everything except `composer update`, however, is perfectly
 possible. That means, they can run composer locally and execute
 commands like `composer install` etc. without any problems.
@@ -51,9 +51,15 @@ Content-Type: application/json; charset=UTF-8
 
 {
     "jobId": "5241c3603853e648127910e71ea235b7",
-    "status" "waiting"
+    "status" "waiting",
+    "links": [
+        "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
+        "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
+    ]
 }
 ```
+
+You'll get a `404 Not Found` if the job ID could not be found.
 
 As long as your job is waiting, you'll get the `202 Accepted` http
 status.
@@ -69,28 +75,39 @@ Content-Type: application/json; charset=UTF-8
 
 {
     "jobId": "5241c3603853e648127910e71ea235b7",
-    "status" "running"
+    "status" "running",
+    "links": [
+        "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
+        "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
+    ]
 }
 ```
 
 Notice that you still get the `202 Accepted` status but the status is
 `running`.
 
-As soon as your job has finished, you won't get any job information
-anymore but the whole `composer.lock` instead. The final indicator here
-is the `200 OK` http status code:
+As soon as your job has finished, the response will look like this.
+The final indicator here is the `200 OK` http status code:
 
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=UTF-8
 
 {
-    "_readme": [
-        "This file locks the dependencies of your project to a known state",
-[...]
+    "jobId": "5241c3603853e648127910e71ea235b7",
+    "status" "finished",
+    "links": [
+        "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
+        "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
+    ]
+}
 ```
 
-Done!
+Done! You can get the `composer.lock` file at the URL indicated in the
+`links` section of the response.
+
+During the resolving process, you can also fetch the complete console
+output of Composer itself using the `composerOutput` endpoint.
 
 
 ## Does it just run composer update?
@@ -132,7 +149,7 @@ $ docker service scale composer-resolver_worker=40
 ```
 
 
-## Development (PHP part)
+## Development
 
 Development:
 
@@ -147,26 +164,3 @@ $ docker-compose -f ./docker/docker-compose-production.yml build
 $ docker-compose -f ./docker/docker-compose-production.yml push
 $ docker-compose -f ./docker/docker-compose-production.yml bundle -o composer-resolver.dab
 ```
-
-## Development (Electron part)
-
-First, make sure your dependencies are up to date: `npm install`.
-
-Install electron globally because that will ease working with it: `npm install -g electron`
-
-Run the app by executing `electron ./app`
-
-## Building the Electron app
-
-Run `npm run dist`. The generated files reside within `./build`.
-See the [electron-builder](https://github.com/electron-userland/electron-builder) project for configuration options and prerequisites
-to e.g. package the app for multiple platforms.
-
-## Desktop App
-
-Part of this repository is an electron app that runs the the Docker containers
-as a service on your localhost and provides a simple interface showing you the
-status of Docker, taking a composer.json and returning a composer.lock file.
-You don't need this if you want to only run the resolver as - say - cloud solution.
-The app related files are not part of the Docker images. I did not split the
-projects into two repositories (yet) because of convenience.
