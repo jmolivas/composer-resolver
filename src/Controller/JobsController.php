@@ -90,7 +90,7 @@ class JobsController
      *
      * @return Response
      */
-    public function getAction($jobId) : Response // Silex does not yet support PHP7 argument resolving (no type hint here!)
+    public function getAction(string $jobId) : Response
     {
         $job = $this->fetchJob($jobId);
 
@@ -124,7 +124,7 @@ class JobsController
      *
      * @return Response
      */
-    public function getComposerLockAction($jobId) : Response // Silex does not yet support PHP7 argument resolving (no type hint here!)
+    public function getComposerLockAction(string $jobId) : Response
     {
         $job = $this->fetchJob($jobId);
 
@@ -142,7 +142,7 @@ class JobsController
      *
      * @return Response
      */
-    public function getComposerOutputAction($jobId) : Response // Silex does not yet support PHP7 argument resolving (no type hint here!)
+    public function getComposerOutputAction(string $jobId) : Response
     {
         $job = $this->fetchJob($jobId);
 
