@@ -29,7 +29,11 @@ while(true) {
         });
 
         // Process
-        $job = $resolver->resolve($job, $jobIO);
+        try {
+            $job = $resolver->resolve($job, $jobIO);
+        } catch (\Exception $e) {
+            $writeln('Exception during resolving process: ' . $e->getMessage());
+        }
 
         // Finished
         $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));

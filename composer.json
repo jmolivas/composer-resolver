@@ -16,7 +16,7 @@
     "require": {
         "php": "^7.0",
         "silex/silex": "^2.0",
-        "composer/composer": "^1.0",
+        "composer/composer": "dev-master",
         "predis/predis": "^1.1",
         "predis/service-provider": "dev-master",
         "monolog/monolog": "^1.19",
