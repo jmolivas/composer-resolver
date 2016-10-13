@@ -36,7 +36,7 @@ Content-Type: application/json; charset=UTF-8
 }
 ```
 
-You can verify for correct creation by checking both, th `201 Created`
+You can verify for correct creation by checking both, the `201 Created`
 http status as well as the `status` field in the content.
 
 You can then `GET` the results or the current state of your job by
