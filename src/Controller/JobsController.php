@@ -84,7 +84,7 @@ class JobsController
         }
 
         // Create the job
-        $jobId = uniqid();
+        $jobId = uniqid('', true);
         $job   = new Job($jobId, Job::STATUS_QUEUED, $composerJson);
         $this->redis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
         $this->redis->rpush($this->queueKey, [$job->getId()]);
