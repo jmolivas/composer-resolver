@@ -269,8 +269,8 @@ class JobsController
     private function prepareResponseData(Job $job) : array
     {
         return [
-            'jobId'     => $job->getId(),
-            'status'    => $job->getStatus()
+            'jobId'   => $job->getId(),
+            'status'  => $job->getStatus()
         ];
     }
 }
