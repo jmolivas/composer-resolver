@@ -55,11 +55,11 @@ class Resolver implements ResolverInterface
 
         // Only fetch the composer.lock if the result is fine
         if (0 === $out) {
-            // Get the composer.lock
-            $job->setComposerLock((string) file_get_contents($composerLock));
+            $job->setComposerLock((string) file_get_contents($composerLock))
+                ->setStatus(Job::STATUS_FINISHED);
+        } else {
+            $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
         }
-
-        $job->setStatus(Job::STATUS_FINISHED);
 
         // Remove job dir
         $fs->remove($jobDir);

@@ -10,9 +10,10 @@ namespace Toflar\ComposerResolver;
  */
 class Job implements \JsonSerializable
 {
-    const STATUS_QUEUED     = 'queued';
-    const STATUS_PROCESSING = 'processing';
-    const STATUS_FINISHED   = 'finished';
+    const STATUS_QUEUED                 = 'queued';
+    const STATUS_PROCESSING             = 'processing';
+    const STATUS_FINISHED               = 'finished';
+    const STATUS_FINISHED_WITH_ERRORS   = 'finished_with_errors';
 
     private $id;
     private $status;

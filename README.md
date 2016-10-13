@@ -106,6 +106,27 @@ Content-Type: application/json; charset=UTF-8
 Done! You can get the `composer.lock` file at the URL indicated in the
 `links` section of the response.
 
+A job can also be finished while encountering errors (e.g. a set of 
+dependencies that is not resolvable). In this case, you'll get the
+`finished_with_errors` status (note that in this case, fetching the
+`composerLock` endpoint will result in a `404 Not Found` because
+there's obviously no `composer.lock` file that could have been written:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+
+{
+    "jobId": "5241c3603853e648127910e71ea235b7",
+    "status" "finished_with_errors",
+    "links": [
+        "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
+        "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
+    ]
+}
+```
+
+
 During the resolving process, you can also fetch the complete console
 output of Composer itself using the `composerOutput` endpoint.
 
