@@ -2,7 +2,6 @@
 
 namespace Toflar\ComposerResolver\Controller;
 
-use Assert\Assertion;
 use JsonSchema\Validator;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
@@ -60,7 +59,7 @@ class JobsController
     {
         $composerJson = $request->getContent();
 
-        if (!Assertion::isJsonString($composerJson)) {
+        if (null === json_decode($composerJson)) {
             return new Response(
                 'Your composer.json does not contain valid json content.',
                 400
