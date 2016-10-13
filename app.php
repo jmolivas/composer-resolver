@@ -2,6 +2,14 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+$fetchEnvVar = function($key, $default) {
+    if (false === ($value = getenv($key))) {
+        return $default;
+    }
+
+    return $value;
+};
+
 $app = new Silex\Application();
 
 // Redis
@@ -13,9 +21,9 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
     ],
 ]);
 
-$app['redis.jobs.queueKey']               = 'jobs-queue';
-$app['redis.jobs.workerPollingFrequency'] = 5; // 5 seconds by default
-$app['redis.jobs.ttl']                    = 600; // 10 Minutes by default
+$app['redis.jobs.queueKey']               = $fetchEnvVar('COMPOSER-RESOLVER-JOBS-QUEUE-KEY', 'jobs-queue');
+$app['redis.jobs.workerPollingFrequency'] = $fetchEnvVar('COMPOSER-RESOLVER-POLLING-FREQUENCY', 5);
+$app['redis.jobs.ttl']                    = $fetchEnvVar('COMPOSER-RESOLVER-JOBS-TTL', 600);
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(
