@@ -51,7 +51,12 @@ class Resolver implements ResolverInterface
 
         // Run installer
         $installer = $this->getInstaller($io);
-        $installer->run();
+        $out = $installer->run();
+
+        // Throw an exception with the console output so it is logged
+        if (0 !== $out) {
+            throw new \RuntimeException($io);
+        }
 
         // Get the composer.lock
         $job->setStatus(Job::STATUS_FINISHED)
