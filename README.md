@@ -148,6 +148,14 @@ You can easily scale the service (most likely the workers) like this:
 $ docker service scale composer-resolver_worker=40
 ```
 
+### Configure
+
+There are environment variables to configure the way the worker is
+working (pun intended):
+
+* `COMPOSER-RESOLVER-JOBS-QUEUE-KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
+* `COMPOSER-RESOLVER-POLLING-FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `5`)
+* `COMPOSER-RESOLVER-JOBS-TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
 
 ## Development
 
