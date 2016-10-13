@@ -255,6 +255,26 @@ class JobsController
         unset($json['version']);
         unset($json['version_normalized']);
 
+        if (isset($json['repositories'])) {
+            foreach ((array) $json['repositories'] as $k => $repository) {
+
+                // Ignore local paths on repositories information
+                if (isset($repository['url'])
+                    && is_string($repository['url'])
+                    && '/' === $repository['url'][0]
+                ) {
+                    unset($json['repositories'][$k]);
+                }
+
+                // Ignore artifact repositories
+                if (isset($repository['type'])
+                    && 'artifact' === $repository['type']
+                ) {
+                    unset($json['repositories'][$k]);
+                }
+            }
+        }
+
         return json_encode($json);
     }
 
