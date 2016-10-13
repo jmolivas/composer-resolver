@@ -113,8 +113,8 @@ class JobsController
             return new Response('Job not found.', 404);
         }
 
-        $httpStatus     = Job::STATUS_FINISHED === $job->getStatus() ? 200 : 202;
-        $data           = $this->prepareResponseData($job);
+        $httpStatus = Job::STATUS_FINISHED === $job->getStatus() ? 200 : 202;
+        $data       = $this->prepareResponseData($job);
 
         // Add locations for composer.lock and output
         $data['links'] = [
