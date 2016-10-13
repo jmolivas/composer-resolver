@@ -1,5 +1,7 @@
 FROM php:7-fpm-alpine
 
+MAINTAINER Yanick Witschi <yanick.witschi@terminal42.ch>
+
 # Copy resolver files
 COPY ./bin /var/www/composer-resolver/bin
 COPY ./src /var/www/composer-resolver/src
