@@ -31,8 +31,8 @@ while(true) {
         // Process
         try {
             $job = $resolver->resolve($job, $jobIO);
-        } catch (\Exception $e) {
-            $writeln('Exception during resolving process: ' . $e->getMessage());
+        } catch (\Throwable $t) {
+            $writeln('Error during resolving process: ' . $t->getMessage());
         }
 
         // Finished
