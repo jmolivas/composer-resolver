@@ -66,6 +66,9 @@ class JobsController
                 400
             );
         }
+
+        $composerJson = $this->sanitizeComposerJson($composerJson);
+
         $errors = $this->validateComposerJsonSchema($composerJson);
         if (0 !== count($errors)) {
             return new JsonResponse([
@@ -232,6 +235,28 @@ class JobsController
         }
 
         return true;
+    }
+
+    /**
+     * Tries to sanitize the content of the composer.json.
+     * It e.g. removes version hints, invalid platform parameters etc.
+     *
+     * @param string $composerJson
+     *
+     * @return string
+     */
+    private function sanitizeComposerJson(string $composerJson) : string
+    {
+        $json = json_decode($composerJson, true);
+
+        // Unset "composer-plugin-api" if present in platform config
+        unset($json['config']['platform']['composer-plugin-api']);
+
+        // Unset version information
+        unset($json['version']);
+        unset($json['version_normalized']);
+
+        return json_encode($json);
     }
 
     /**
