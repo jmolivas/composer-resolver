@@ -13,8 +13,9 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
     ],
 ]);
 
-$app['redis.jobs.queueKey'] = 'jobs-queue';
-$app['redis.jobs.ttl']      = 600; // 10 Minutes by default
+$app['redis.jobs.queueKey']               = 'jobs-queue';
+$app['redis.jobs.workerPollingFrequency'] = 5; // 5 seconds by default
+$app['redis.jobs.ttl']                    = 600; // 10 Minutes by default
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(

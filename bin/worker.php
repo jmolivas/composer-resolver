@@ -14,7 +14,7 @@ while(true) {
 
     $writeln('Worker checks for jobs in queue');
 
-    $job = $predis->blpop([$app['redis.jobs.queueKey']], 5); // Only check every 5 seconds
+    $job = $predis->blpop([$app['redis.jobs.queueKey']], $app['redis.jobs.workerPollingFrequency']);
 
     if (null !== $job && null !== ($jobData = $predis->get('jobs:' . $job[1]))) {
         $job = \Toflar\ComposerResolver\Job::createFromArray(json_decode($jobData, true));
