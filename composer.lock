@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "2b9daa8ee12e01f0b5ce9dab10ffd038",
-    "content-hash": "5583671c26d85910d27070ed1ba453d6",
+    "hash": "27794542b97806e6528317eaf42e8d67",
+    "content-hash": "94ea1b867ed1b795f7e797157fe40ebe",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -330,6 +330,48 @@
                 "schema"
             ],
             "time": "2016-10-10 12:37:37"
+        },
+        {
+            "name": "knplabs/console-service-provider",
+            "version": "2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/KnpLabs/ConsoleServiceProvider.git",
+                "reference": "ac3498030bb54ec1d7e79043fe984fc3aeb48bfb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/KnpLabs/ConsoleServiceProvider/zipball/ac3498030bb54ec1d7e79043fe984fc3aeb48bfb",
+                "reference": "ac3498030bb54ec1d7e79043fe984fc3aeb48bfb",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2",
+                "symfony/console": "~2.3|~3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Knp\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Knplabs",
+                    "homepage": "http://knplabs.com"
+                }
+            ],
+            "description": "console service provider for Silex",
+            "homepage": "http://knplabs.com",
+            "keywords": [
+                "console",
+                "silex"
+            ],
+            "time": "2016-06-01 05:51:46"
         },
         {
             "name": "monolog/monolog",

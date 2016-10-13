@@ -12,6 +12,13 @@ $fetchEnvVar = function($key, $default) {
 
 $app = new Silex\Application();
 
+// Console
+$app->register(new Knp\Provider\ConsoleServiceProvider(), array(
+    'console.name'              => 'Composer Resolver Console',
+    'console.version'           => '1.0.0',
+    'console.project_directory' => __DIR__
+));
+
 // Redis
 $app->register(new Predis\Silex\ClientServiceProvider(), [
     'predis.parameters' => 'redis:6379',
