@@ -99,7 +99,7 @@ class Resolver implements ResolverInterface
     private function getComposer(IOInterface $io)
     {
         // TODO: support extra parameters for the resolver
-        $disablePlugins = true;
+        $disablePlugins = false;
 
         return Factory::create($io, null, $disablePlugins);
     }
