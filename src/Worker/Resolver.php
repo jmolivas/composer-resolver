@@ -53,15 +53,13 @@ class Resolver implements ResolverInterface
         $installer = $this->getInstaller($io);
         $out = $installer->run();
 
-        // Throw an exception with the console output so it is logged
-        if (0 !== $out) {
-            throw new \RuntimeException($io);
+        // Only fetch the composer.lock if the result is fine
+        if (0 === $out) {
+            // Get the composer.lock
+            $job->setStatus(Job::STATUS_FINISHED)
+                ->setComposerLock((string) file_get_contents($composerLock));
         }
-
-        // Get the composer.lock
-        $job->setStatus(Job::STATUS_FINISHED)
-            ->setComposerLock((string) file_get_contents($composerLock));
-
+        
         // Remove job dir
         $fs->remove($jobDir);
 
