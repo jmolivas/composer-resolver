@@ -16,6 +16,7 @@ class JobIO extends NullIO implements IOInterface
 {
     private $job;
     private $onUpdate;
+    private $verbosity;
 
     /**
      * JobBridgeInput constructor.
@@ -27,6 +28,8 @@ class JobIO extends NullIO implements IOInterface
     {
         $this->job      = $job;
         $this->onUpdate = $onUpdate;
+
+        $this->verbosity = self::NORMAL;
     }
 
     /**
@@ -40,11 +43,27 @@ class JobIO extends NullIO implements IOInterface
     }
 
     /**
+     * @return int
+     */
+    public function getVerbosity()
+    {
+        return $this->verbosity;
+    }
+
+    /**
+     * @param int $verbosity
+     */
+    public function setVerbosity($verbosity)
+    {
+        $this->verbosity = $verbosity;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function write($messages, $newline = true, $verbosity = self::NORMAL)
     {
-        $this->appendToOutput($messages, $newline);
+        $this->appendToOutput($messages, $newline, $verbosity);
     }
 
     /**
@@ -52,7 +71,7 @@ class JobIO extends NullIO implements IOInterface
      */
     public function writeError($messages, $newline = true, $verbosity = self::NORMAL)
     {
-        $this->appendToOutput($messages, $newline);
+        $this->appendToOutput($messages, $newline, $verbosity);
     }
 
     /**
@@ -60,7 +79,7 @@ class JobIO extends NullIO implements IOInterface
      */
     public function overwrite($messages, $newline = true, $size = 80, $verbosity = self::NORMAL)
     {
-        $this->appendToOutput($messages, $newline);
+        $this->appendToOutput($messages, $newline, $verbosity);
     }
 
     /**
@@ -68,7 +87,7 @@ class JobIO extends NullIO implements IOInterface
      */
     public function overwriteError($messages, $newline = true, $size = 80, $verbosity = self::NORMAL)
     {
-        $this->appendToOutput($messages, $newline);
+        $this->appendToOutput($messages, $newline, $verbosity);
     }
 
     /**
@@ -76,9 +95,14 @@ class JobIO extends NullIO implements IOInterface
      *
      * @param string|array  $messages
      * @param bool          $newline
+     * @param int           $verbosity
      */
-    private function appendToOutput($messages, $newline)
+    private function appendToOutput($messages, $newline, $verbosity)
     {
+        if ($verbosity > $this->verbosity) {
+            return;
+        }
+
         if (!is_array($messages)) {
             $messages = [$messages];
         }

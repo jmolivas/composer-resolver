@@ -105,6 +105,8 @@ class Resolver implements ResolverInterface
         // TODO: support extra parameters for the resolver
         $disablePlugins = false;
 
+        // TODO: verbosity on  IO
+
         return Factory::create($io, null, $disablePlugins);
     }
 }
