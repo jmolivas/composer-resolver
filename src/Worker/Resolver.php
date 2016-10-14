@@ -47,6 +47,10 @@ class Resolver implements ResolverInterface
 
         $fs = new Filesystem();
         $fs->dumpFile($composerJson, $job->getComposerJson());
+
+        // Set working environment
+        chdir($jobDir);
+        putenv('COMPOSER_HOME=' . $jobDir);
         putenv('COMPOSER=' . $composerJson);
 
         // Run installer
