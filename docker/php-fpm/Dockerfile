@@ -2,6 +2,9 @@ FROM php:7-fpm-alpine
 
 MAINTAINER Yanick Witschi <yanick.witschi@terminal42.ch>
 
+# Copy php.ini
+COPY ./docker/php-fpm/php.ini /etc/php/conf.d/composer-resolver.ini
+
 # Copy resolver files
 COPY ./bin /var/www/composer-resolver/bin
 COPY ./src /var/www/composer-resolver/src

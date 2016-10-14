@@ -31,6 +31,6 @@ COPY ./web /var/www/composer-resolver/web
 COPY ./app.php /var/www/composer-resolver/app.php
 
 # Copy php.ini
-COPY ./docker/worker/php.ini /usr/local/etc/php/conf.d/composer-resolver.ini
+COPY ./docker/worker/php.ini /etc/php7/conf.d/composer-resolver.ini
 
 CMD php /var/www/composer-resolver/bin/worker.php
