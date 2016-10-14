@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "27794542b97806e6528317eaf42e8d67",
-    "content-hash": "94ea1b867ed1b795f7e797157fe40ebe",
+    "hash": "941f8ea72dff3d55335d60fd92f88ed4",
+    "content-hash": "7cffef5b60e6b04774a152ad74ece570",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -67,17 +67,11 @@
         },
         {
             "name": "composer/composer",
-            "version": "dev-master",
+            "version": "dev-improve-installer-extensibility",
             "source": {
                 "type": "git",
-                "url": "https://github.com/composer/composer.git",
-                "reference": "aa051ba4f046487675f4c209e7b87a7306d6aea1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/aa051ba4f046487675f4c209e7b87a7306d6aea1",
-                "reference": "aa051ba4f046487675f4c209e7b87a7306d6aea1",
-                "shasum": ""
+                "url": "/Users/yanickwitschi/Projects/Github/composer",
+                "reference": "15e0da2a386ff48fc9e6f638641f9d1d248e2290"
             },
             "require": {
                 "composer/ca-bundle": "^1.0",
@@ -117,7 +111,16 @@
                     "Composer\\": "src/Composer"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Composer\\Test\\": "tests/Composer/Test"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -140,7 +143,11 @@
                 "dependency",
                 "package"
             ],
-            "time": "2016-10-12 14:57:43"
+            "support": {
+                "irc": "irc://irc.freenode.org/composer",
+                "issues": "https://github.com/composer/composer/issues"
+            },
+            "time": "2016-10-14 13:00:07"
         },
         {
             "name": "composer/semver",

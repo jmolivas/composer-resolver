@@ -16,7 +16,7 @@
     "require": {
         "php": "^7.0",
         "silex/silex": "^2.0",
-        "composer/composer": "dev-master",
+        "composer/composer": "dev-improve-installer-extensibility",
         "predis/predis": "^1.1",
         "predis/service-provider": "dev-master",
         "monolog/monolog": "^1.19",
@@ -29,6 +29,12 @@
             "Toflar\\ComposerResolver\\": "src"
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "/Users/yanickwitschi/Projects/Github/composer"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }

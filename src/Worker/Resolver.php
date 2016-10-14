@@ -83,12 +83,13 @@ class Resolver implements ResolverInterface
         $composer = $this->getComposer($io);
         $composer->getInstallationManager()->addInstaller(
             new Installer\NoopInstaller());
-        $installer = Installer::create($io, $composer);
-        $installer->setUpdate(true);
-        $installer->setDryRun(false);
-        $installer->setDumpAutoloader(false);
-        $installer->setRunScripts(false);
-        $installer->setDevMode(false);
+        $installer = Installer::create($io, $composer)
+            ->setUpdate(true) // Update
+            ->setDryRun(true) // Dry run (= no autoload dump, no scripts)
+            ->setDevMode(true) // Enable dev
+            ->setWriteLock(true) // Still write the lock file
+            ->setVerbose(true) // Always verbose for composer. Verbosity is managed on the JobIO
+        ;
 
         return $installer;
     }
