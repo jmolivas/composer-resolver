@@ -31,6 +31,7 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
 $app['redis.jobs.queueKey']               = $fetchEnvVar('COMPOSER-RESOLVER-JOBS-QUEUE-KEY', 'jobs-queue');
 $app['redis.jobs.workerPollingFrequency'] = $fetchEnvVar('COMPOSER-RESOLVER-POLLING-FREQUENCY', 5);
 $app['redis.jobs.ttl']                    = $fetchEnvVar('COMPOSER-RESOLVER-JOBS-TTL', 600);
+$app['redis.jobs.atpj']                   = $fetchEnvVar('COMPOSER-RESOLVER-JOBS-ATPJ', 30);
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(

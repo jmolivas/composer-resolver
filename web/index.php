@@ -11,10 +11,13 @@ $app['jobs.controller'] = function() use ($app) {
         $app['url_generator'],
         $app['logger'],
         $app['redis.jobs.queueKey'],
-        $app['redis.jobs.ttl']
+        $app['redis.jobs.ttl'],
+        $app['redis.jobs.atpj']
     );
 };
 
+$app->get('/', 'jobs.controller:indexAction')
+    ->bind('jobs_index');
 $app->post('/jobs', 'jobs.controller:postAction')
     ->bind('jobs_post');
 $app->get('/jobs/{jobId}', 'jobs.controller:getAction')

@@ -24,6 +24,7 @@ class JobsController
     private $logger;
     private $queueKey;
     private $ttl;
+    private $atpj;
 
     /**
      * JobsController constructor.
@@ -33,19 +34,34 @@ class JobsController
      * @param LoggerInterface       $logger
      * @param string                $queueKey
      * @param int                   $ttl
+     * @param int                   $atpj Average time needed per job in seconds
      */
     public function __construct(
         Client $redis,
         UrlGeneratorInterface $urlGenerator,
         LoggerInterface $logger,
         string $queueKey,
-        int $ttl
+        int $ttl,
+        int $atpj
     ) {
         $this->redis        = $redis;
         $this->urlGenerator = $urlGenerator;
         $this->logger       = $logger;
         $this->queueKey     = $queueKey;
         $this->ttl          = $ttl;
+        $this->atpj         = $atpj;
+    }
+
+    /**
+     * Index request. Gives information about the current waiting time.
+     *
+     * @return Response
+     */
+    public function indexAction() : Response
+    {
+        return new JsonResponse([
+            'waitingTimeInSeconds' => $this->calculateCurrentWaitingTime()
+        ]);
     }
 
     /**
@@ -291,5 +307,15 @@ class JobsController
             'jobId'   => $job->getId(),
             'status'  => $job->getStatus()
         ];
+    }
+
+    /**
+     * @return int
+     */
+    private function calculateCurrentWaitingTime() : int
+    {
+        $numberOfJobsInQueue = $this->redis->llen($this->queueKey);
+
+        return $numberOfJobsInQueue * $this->atpj;
     }
 }

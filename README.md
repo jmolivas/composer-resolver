@@ -130,6 +130,20 @@ Content-Type: application/json; charset=UTF-8
 During the resolving process, you can also fetch the complete console
 output of Composer itself using the `composerOutput` endpoint.
 
+If you want to inform the users about the approx. waiting time for the
+job to be started, just `GET` the index `/` route and you'll be informed
+like this:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+
+{
+    "waitingTimeInSeconds": 90,
+}
+```
+
+Also see the "Configure" section on how this is being calculated.
 
 ## Does it just run composer update?
 
@@ -177,6 +191,7 @@ working (pun intended):
 * `COMPOSER-RESOLVER-JOBS-QUEUE-KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
 * `COMPOSER-RESOLVER-POLLING-FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `5`)
 * `COMPOSER-RESOLVER-JOBS-TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
+* `COMPOSER-RESOLVER-JOBS-ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
 
 ## Development
 
