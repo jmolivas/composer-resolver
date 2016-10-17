@@ -154,7 +154,7 @@ The Composer Resolver supports a subset of those using the
 you would when executing the command on command line. Example:
 
 ```
-Composer-Resolver-Command: my-vendor/my-package --vvv --profile --no-suggest
+Composer-Resolver-Command: my-vendor/my-package -vvv --profile --no-suggest
 ```
 
 Note: It does not make sense to support everything the command line does
