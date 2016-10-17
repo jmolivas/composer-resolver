@@ -5,8 +5,11 @@ namespace Toflar\ComposerResolver\Worker;
 use Composer\Factory;
 use Composer\Installer;
 use Composer\IO\IOInterface;
+use Predis\Client;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Toflar\ComposerResolver\Job;
+use Toflar\ComposerResolver\JobIO;
 
 /**
  * Class Resolver
@@ -16,17 +19,91 @@ use Toflar\ComposerResolver\Job;
  */
 class Resolver
 {
+    /**
+     * @var Client
+     */
+    private $predis;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var string
+     */
     private $jobsDir;
+
+    /**
+     * @var string
+     */
+    private $queueKey;
+
+    /**
+     * @var int
+     */
+    private $ttl;
 
     /**
      * Resolver constructor.
      *
-     * @param string      $jobsDir
+     * @param Client          $predis
+     * @param LoggerInterface $logger
+     * @param string          $jobsDir
+     * @param string          $queueKey
+     * @param int             $ttl
      */
-    public function __construct(string $jobsDir)
+    public function __construct(Client $predis, LoggerInterface $logger, string $jobsDir, string $queueKey, int $ttl)
     {
+        $this->predis = $predis;
+        $this->logger = $logger;
         $this->jobsDir = $jobsDir;
+        $this->queueKey = $queueKey;
+        $this->ttl = $ttl;
     }
+
+
+    /**
+     * Runs the resolver
+     *
+     * @param int $pollingFrequency
+     */
+    public function run(int $pollingFrequency)
+    {
+        $predis = $this->predis;
+        $ttl    = $this->ttl;
+        $job    = $predis->blpop($this->queueKey, $pollingFrequency);
+
+        if (null !== $job && null !== ($jobData = $predis->get('jobs:' . $job[1]))) {
+            $job = Job::createFromArray(json_decode($jobData, true));
+
+            // Set status to processing
+            $job->setStatus(Job::STATUS_PROCESSING);
+            $predis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
+
+            // Create IO Bridge
+            $jobIO = new JobIO($job, function() use ($predis, $job, $ttl) {
+                $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
+            });
+
+            // Process
+            try {
+                $job = $this->resolve($job, $jobIO);
+            } catch (\Throwable $t) {
+                $this->logger->error('Error during resolving process: ' . $t->getMessage(), [
+                    'line'  => $t->getLine(),
+                    'file'  => $t->getFile(),
+                    'trace' => $t->getTrace()
+                ]);
+            }
+
+            // Finished
+            $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
+
+            $this->logger->info('Finished working on job ' . $job->getId());
+        }
+    }
+
 
     /**
      * Resolves a given job.
@@ -37,7 +114,7 @@ class Resolver
      * @return Job
      * @throws \Exception
      */
-    public function resolve(Job $job, IOInterface $io) : Job
+    private function resolve(Job $job, IOInterface $io) : Job
     {
         // Create the composer.json in a temporary jobs directory where we
         // work on

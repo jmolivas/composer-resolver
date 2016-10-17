@@ -40,7 +40,11 @@ $app->register(new Silex\Provider\MonologServiceProvider(), array(
 
 // Resolver
 $app['composer-resolver'] = new \Toflar\ComposerResolver\Worker\Resolver(
-    __DIR__ . '/jobs'
+    $app['predis'],
+    $app['logger'],
+    __DIR__ . '/jobs',
+    $app['redis.jobs.queueKey'],
+    $app['redis.jobs.ttl']
 );
 
 return $app;
