@@ -229,7 +229,7 @@ class Resolver
         $input = new ArrayInput([]);
         $input->setInteractive(false);
 
-        $output = new JobOutput($this->getOutputVerbosity($options));
+        $output = new JobOutput($options['verbosity'] ?: OutputInterface::VERBOSITY_NORMAL);
         $output->setJob($job);
         $output->setOnUpdate(function(Job $job) use ($predis, $ttl) {
             $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
@@ -250,31 +250,6 @@ class Resolver
         }
 
         return $io;
-    }
-
-    /**
-     * Get the verbosity level based on the options.
-     *
-     * @param array $options
-     *
-     * @return int
-     */
-    private function getOutputVerbosity(array $options) : int
-    {
-        if (!isset($options['verbose'])) {
-            return OutputInterface::VERBOSITY_NORMAL;
-        }
-
-        switch ($options['verbose']) {
-            case 3:
-                return OutputInterface::VERBOSITY_DEBUG;
-            case 2:
-                return OutputInterface::VERBOSITY_VERY_VERBOSE;
-            case 1:
-                return OutputInterface::VERBOSITY_VERBOSE;
-        }
-
-        return OutputInterface::VERBOSITY_NORMAL;
     }
 
     /**

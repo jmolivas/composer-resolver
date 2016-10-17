@@ -3,9 +3,12 @@
 namespace Toflar\ComposerResolver;
 
 use Composer\Command\UpdateCommand;
+use Composer\Console\Application;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Class Job
@@ -287,29 +290,75 @@ class Job implements \JsonSerializable
             'options' => [],
         ];
         $newDefinition = new InputDefinition();
-        $cmd = new UpdateCommand();
+
+        $updateCmd = new UpdateCommand();
+        $composerApp = new Application();
 
         // Arguments
-        foreach ($cmd->getDefinition()->getArguments() as $argument) {
-            if (in_array($argument->getName(), self::$validUpdateArguments)) {
-                $newDefinition->addArgument($argument);
-            }
-        }
+        static::addValidArgumentsFromDefinition($updateCmd->getDefinition(), $newDefinition);
+        static::addValidArgumentsFromDefinition($composerApp->getDefinition(), $newDefinition);
 
         // Options
-        foreach ($cmd->getDefinition()->getOptions() as $option) {
-            if (in_array($option->getName(), self::$validUpdateOptions)) {
-                $newDefinition->addOption($option);
-            }
-        }
+        static::addValidOptionsFromDefinition($updateCmd->getDefinition(), $newDefinition);
+        static::addValidOptionsFromDefinition($composerApp->getDefinition(), $newDefinition);
 
         $input = new StringInput($arguments);
+        $input->bind($newDefinition);
 
         $input->validate();
 
+        // Arguments
         $options['args']    = $input->getArguments();
         $options['options'] = $input->getOptions();
 
+        // Handle verbosity
+        unset($options['options']['verbose']);
+        $options['options']['verbosity'] = static::getVerbosity($input);
+
         return $options;
+    }
+
+    /**
+     * @param InputDefinition $old
+     * @param InputDefinition $new
+     */
+    private static function addValidArgumentsFromDefinition(InputDefinition $old, InputDefinition $new)
+    {
+        foreach ($old->getArguments() as $argument) {
+            if (in_array($argument->getName(), self::$validUpdateArguments)) {
+                $new->addArgument($argument);
+            }
+        }
+    }
+
+    /**
+     * @param InputDefinition $old
+     * @param InputDefinition $new
+     */
+    private static function addValidOptionsFromDefinition(InputDefinition $old, InputDefinition $new)
+    {
+        foreach ($old->getOptions() as $option) {
+            if (in_array($option->getName(), self::$validUpdateOptions)) {
+                $new->addOption($option);
+            }
+        }
+    }
+
+    /**
+     * @param InputInterface $input
+     *
+     * @return int
+     */
+    private static function getVerbosity(InputInterface $input) : int
+    {
+        if ($input->hasParameterOption('-vvv', true) || $input->hasParameterOption('--verbose=3', true) || $input->getParameterOption('--verbose', false, true) === 3) {
+            return OutputInterface::VERBOSITY_DEBUG;
+        } elseif ($input->hasParameterOption('-vv', true) || $input->hasParameterOption('--verbose=2', true) || $input->getParameterOption('--verbose', false, true) === 2) {
+            return OutputInterface::VERBOSITY_VERY_VERBOSE;
+        } elseif ($input->hasParameterOption('-v', true) || $input->hasParameterOption('--verbose=1', true) || $input->hasParameterOption('--verbose', true) || $input->getParameterOption('--verbose', false, true)) {
+            return OutputInterface::VERBOSITY_VERBOSE;
+        } else {
+            return OutputInterface::VERBOSITY_NORMAL;
+        }
     }
 }
