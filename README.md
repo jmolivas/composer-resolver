@@ -145,6 +145,37 @@ Content-Type: application/json; charset=UTF-8
 
 Also see the "Configure" section on how this is being calculated.
 
+## Update with different options
+
+As we all know, `composer update` does provide different arguments and
+options on the command line to influence the outcome of the update.
+The Composer Resolver supports a subset of those using the
+`Composer-Resolver-Command` HTTP header. Just use it the same way
+you would when executing the command on command line. Example:
+
+```
+Composer-Resolver-Command: my-vendor/my-package --vvv --profile --no-suggest
+```
+
+Note: It does not make sense to support everything the command line does
+(e.g. it cannot be interactive so `--no-interaction` is always set and
+cannot be modified). The only argument (`packages` to restrict to a list
+of packages) is supported. Options are not all available. Here's the list
+of what you can use (you can also use the aliases such as `-vvv` for 
+`--verbose=3`:
+
+* prefer-source
+* prefer-dist
+* no-dev
+* no-suggest
+* prefer-stable
+* prefer-lowest
+* ansi
+* no-ansi
+* profile
+* verbose
+
+
 ## Does it just run composer update?
 
 No, `composer update` would also download the dependencies which is not

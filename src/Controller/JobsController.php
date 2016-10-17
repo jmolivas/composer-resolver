@@ -125,6 +125,22 @@ class JobsController
         // Create the job
         $jobId = uniqid('', true);
         $job   = new Job($jobId, Job::STATUS_QUEUED, $composerJson);
+
+        // Check for job options
+        if ($request->headers->has('Composer-Resolver-Command')) {
+            try {
+                $options = Job::createComposerOptionsFromCommandLineArguments(
+                    $request->headers->get('Composer-Resolver-Command')
+                );
+                $job->setComposerOptions($options);
+            } catch (\Exception $e) {
+                return new Response(
+                    'You provided Composer-Resolver-Command header. The content of it is not accepted. Check the manual for the correct usage.',
+                    400
+                );
+            }
+        }
+
         $this->redis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
         $this->redis->rpush($this->queueKey, [$job->getId()]);
 
