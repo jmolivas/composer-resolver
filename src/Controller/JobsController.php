@@ -50,6 +50,11 @@ class JobsController
     private $atpj;
 
     /**
+     * @var int
+     */
+    private $workers;
+
+    /**
      * JobsController constructor.
      *
      * @param Client                $redis
@@ -58,6 +63,7 @@ class JobsController
      * @param string                $queueKey
      * @param int                   $ttl
      * @param int                   $atpj Average time needed per job in seconds
+     * @param int                   $workers  Number of workers
      */
     public function __construct(
         Client $redis,
@@ -65,7 +71,8 @@ class JobsController
         LoggerInterface $logger,
         string $queueKey,
         int $ttl,
-        int $atpj
+        int $atpj,
+        int $workers
     ) {
         $this->redis        = $redis;
         $this->urlGenerator = $urlGenerator;
@@ -73,17 +80,29 @@ class JobsController
         $this->queueKey     = $queueKey;
         $this->ttl          = $ttl;
         $this->atpj         = $atpj;
+        $this->workers      = $workers;
     }
 
     /**
-     * Index request. Gives information about the current waiting time.
+     * Index request. Gives information about the system.
      *
      * @return Response
      */
     public function indexAction() : Response
     {
+        $numberOfJobsInQueue = $this->redis->llen($this->queueKey);
+        $numbersOfWorkers    = $this->workers;
+        $approxWaitingTime   = $numberOfJobsInQueue * $this->atpj / $numbersOfWorkers;
+
+        $dtF = new \DateTime('@0');
+        $dtT = new \DateTime("@$approxWaitingTime");
+        $humanReadable = $dtF->diff($dtT)->format('%i min %s s');
+
         return new JsonResponse([
-            'waitingTimeInSeconds' => $this->calculateCurrentWaitingTime()
+            'approxWaitingTime'      => $approxWaitingTime,
+            'approxWaitingTimeHuman' => $humanReadable,
+            'numberOfJobsInQueue'    => $numberOfJobsInQueue,
+            'numberOfWorkers'        => $numbersOfWorkers
         ]);
     }
 
@@ -346,15 +365,5 @@ class JobsController
             'jobId'   => $job->getId(),
             'status'  => $job->getStatus()
         ];
-    }
-
-    /**
-     * @return int
-     */
-    private function calculateCurrentWaitingTime() : int
-    {
-        $numberOfJobsInQueue = $this->redis->llen($this->queueKey);
-
-        return $numberOfJobsInQueue * $this->atpj;
     }
 }

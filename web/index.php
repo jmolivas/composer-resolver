@@ -12,7 +12,8 @@ $app['jobs.controller'] = function() use ($app) {
         $app['logger'],
         $app['redis.jobs.queueKey'],
         $app['redis.jobs.ttl'],
-        $app['redis.jobs.atpj']
+        $app['redis.jobs.atpj'],
+        $app['redis.jobs.workers']
     );
 };
 

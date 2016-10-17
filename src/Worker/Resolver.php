@@ -65,7 +65,6 @@ class Resolver
         $this->ttl = $ttl;
     }
 
-
     /**
      * Runs the resolver
      *
@@ -100,7 +99,6 @@ class Resolver
             $this->logger->info('Finished working on job ' . $job->getId());
         }
     }
-
 
     /**
      * Resolves a given job.
