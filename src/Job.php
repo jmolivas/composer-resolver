@@ -15,11 +15,35 @@ class Job implements \JsonSerializable
     const STATUS_FINISHED               = 'finished';
     const STATUS_FINISHED_WITH_ERRORS   = 'finished_with_errors';
 
+    /**
+     * @var string
+     */
     private $id;
+
+    /**
+     * @var string
+     */
     private $status;
+
+    /**
+     * @var string
+     */
     private $composerJson;
+
+    /**
+     * @var string
+     */
     private $composerLock;
+
+    /**
+     * @var string
+     */
     private $composerOutput;
+
+    /**
+     * @var array
+     */
+    private $composerOptions = [];
 
     /**
      * Job constructor.
@@ -141,6 +165,26 @@ class Job implements \JsonSerializable
     }
 
     /**
+     * Get the composer options
+     *
+     * @return array
+     */
+    public function getComposerOptions(): array
+    {
+        return $this->composerOptions;
+    }
+
+    /**
+     * Set the composer options
+     *
+     * @param array $composerOptions
+     */
+    public function setComposerOptions(array $composerOptions)
+    {
+        $this->composerOptions = $composerOptions;
+    }
+
+    /**
      * Get the job data as an array.
      *
      * @return array
@@ -153,6 +197,7 @@ class Job implements \JsonSerializable
             'composerJson'      => $this->composerJson,
             'composerLock'      => $this->composerLock,
             'composerOutput'    => $this->composerOutput,
+            'composerOptions'   => $this->composerOptions,
         ];
     }
 
@@ -187,6 +232,11 @@ class Job implements \JsonSerializable
 
         if (isset($array['composerOutput'])) {
             $job->setComposerOutput((string) $array['composerOutput']);
+        }
+
+
+        if (isset($array['composerOptions']) && is_array($array['composerOptions'])) {
+            $job->setComposerOptions($array['composerOptions']);
         }
 
         return $job;
