@@ -19,11 +19,34 @@ use Toflar\ComposerResolver\Job;
  */
 class JobsController
 {
+    /**
+     * @var Client
+     */
     private $redis;
+
+    /**
+     * @var UrlGeneratorInterface
+     */
     private $urlGenerator;
+
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
+
+    /**
+     * @var string
+     */
     private $queueKey;
+
+    /**
+     * @var int
+     */
     private $ttl;
+
+    /**
+     * @var int
+     */
     private $atpj;
 
     /**
