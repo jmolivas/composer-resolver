@@ -176,8 +176,8 @@ class Resolver
         $options = (array) $options['options'];
 
         // Args: packages
-        if (isset($args['packages'])) {
-            $installer->setUpdateWhitelist((array) $args['packages']);
+        if (isset($args['packages']) && is_array($args['packages']) && 0 !== count($args['packages'])) {
+            $installer->setUpdateWhitelist($args['packages']);
         }
 
         // Options: prefer-source
