@@ -4,13 +4,10 @@ namespace Toflar\ComposerResolver\Worker;
 
 use Composer\Factory;
 use Composer\Installer;
-use Composer\IO\ConsoleIO;
-use Composer\IO\IOInterface;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Toflar\ComposerResolver\Job;
@@ -151,12 +148,12 @@ class Resolver
     /**
      * Get the installer.
      *
-     * @param ConsoleIO $io
-     * @param Job       $job
+     * @param JobIO $io
+     * @param Job   $job
      *
      * @return Installer
      */
-    private function getInstaller(ConsoleIO $io, Job $job)
+    private function getInstaller(JobIO $io, Job $job)
     {
         $composer = $this->getComposer($io, $job);
         $composer->getInstallationManager()->addInstaller(
@@ -217,6 +214,8 @@ class Resolver
      * Gets the IO based on job settings.
      *
      * @param Job   $job
+     *
+     * @return JobIO
      */
     private function getIo(Job $job)
     {
@@ -243,7 +242,7 @@ class Resolver
             $output->setDecorated(false);
         }
 
-        $io = new ConsoleIO($input, $output, new HelperSet());
+        $io = new JobIO($input, $output, new HelperSet());
 
         if (isset($options['profile'])) {
             $io->enableDebugging(microtime(true));
@@ -255,12 +254,12 @@ class Resolver
     /**
      * Get composer.
      *
-     * @param ConsoleIO $io
-     * @param Job       $job
+     * @param JobIO $io
+     * @param Job         $job
      *
      * @return \Composer\Composer
      */
-    private function getComposer(ConsoleIO $io, Job $job)
+    private function getComposer(JobIO $io, Job $job)
     {
         $disablePlugins = true; // TODO
 
