@@ -35,7 +35,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "/Users/yanickwitschi/Projects/Github/composer"
+            "url": "https://github.com/Toflar/composer"
         }
     ],
     "minimum-stability": "dev",

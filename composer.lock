@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "f9d5796ee0619138d4eb191264c13888",
-    "content-hash": "c6710954dedd11821b46fd736ab4bb24",
+    "hash": "c7fb0e1f559897af485f4045bb6ef3e7",
+    "content-hash": "ef0d6d0a18a1238ae689bf3cea381c1c",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -70,8 +70,14 @@
             "version": "dev-improve-installer-extensibility",
             "source": {
                 "type": "git",
-                "url": "/Users/yanickwitschi/Projects/Github/composer",
+                "url": "https://github.com/Toflar/composer.git",
                 "reference": "5bca2ff91c540deddf790e907bcd343a3542cb74"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Toflar/composer/zipball/5bca2ff91c540deddf790e907bcd343a3542cb74",
+                "reference": "5bca2ff91c540deddf790e907bcd343a3542cb74",
+                "shasum": ""
             },
             "require": {
                 "composer/ca-bundle": "^1.0",
@@ -145,7 +151,8 @@
             ],
             "support": {
                 "irc": "irc://irc.freenode.org/composer",
-                "issues": "https://github.com/composer/composer/issues"
+                "issues": "https://github.com/composer/composer/issues",
+                "source": "https://github.com/Toflar/composer/tree/improve-installer-extensibility"
             },
             "time": "2016-10-14 13:36:48"
         },
