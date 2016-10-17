@@ -71,7 +71,7 @@
             "source": {
                 "type": "git",
                 "url": "/Users/yanickwitschi/Projects/Github/composer",
-                "reference": "15e0da2a386ff48fc9e6f638641f9d1d248e2290"
+                "reference": "5bca2ff91c540deddf790e907bcd343a3542cb74"
             },
             "require": {
                 "composer/ca-bundle": "^1.0",
@@ -147,7 +147,7 @@
                 "irc": "irc://irc.freenode.org/composer",
                 "issues": "https://github.com/composer/composer/issues"
             },
-            "time": "2016-10-14 13:00:07"
+            "time": "2016-10-14 13:36:48"
         },
         {
             "name": "composer/semver",
