@@ -14,7 +14,7 @@ use Toflar\ComposerResolver\Job;
  * @package Toflar\ComposerResolver\Worker
  * @author  Yanick Witschi <yanick.witschi@terminal42.ch>
  */
-class Resolver implements ResolverInterface
+class Resolver
 {
     private $jobsDir;
 
