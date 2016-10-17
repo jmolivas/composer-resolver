@@ -2,6 +2,11 @@
 
 namespace Toflar\ComposerResolver;
 
+use Composer\Command\UpdateCommand;
+use Symfony\Component\Console\Exception\RuntimeException;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\StringInput;
+
 /**
  * Class Job
  *
@@ -44,6 +49,29 @@ class Job implements \JsonSerializable
      * @var array
      */
     private $composerOptions = [];
+
+    /**
+     * Valid composer update command arguments
+     */
+    private static $validUpdateArguments = [
+        'packages'
+    ];
+
+    /**
+     * Valid composer update command options
+     */
+    private static $validUpdateOptions = [
+        'prefer-source',
+        'prefer-dist',
+        'no-dev',
+        'no-suggest',
+        'prefer-stable',
+        'prefer-lowest',
+        'ansi',
+        'no-ansi',
+        'profile',
+        'verbose',
+    ];
 
     /**
      * Job constructor.
@@ -240,5 +268,48 @@ class Job implements \JsonSerializable
         }
 
         return $job;
+    }
+
+    /**
+     * Parses an command line like string into arguments and validates against
+     * the UpdateCommand and the allowed arguments and options of the job.
+     *
+     * @param string $arguments
+     *
+     * @return array
+     *
+     * @throws RuntimeException If input is not valid
+     */
+    public static function createComposerOptionsFromCommandLineArguments(string $arguments)
+    {
+        $options = [
+            'args'    => [],
+            'options' => [],
+        ];
+        $newDefinition = new InputDefinition();
+        $cmd = new UpdateCommand();
+
+        // Arguments
+        foreach ($cmd->getDefinition()->getArguments() as $argument) {
+            if (in_array($argument->getName(), self::$validUpdateArguments)) {
+                $newDefinition->addArgument($argument);
+            }
+        }
+
+        // Options
+        foreach ($cmd->getDefinition()->getOptions() as $option) {
+            if (in_array($option->getName(), self::$validUpdateOptions)) {
+                $newDefinition->addOption($option);
+            }
+        }
+
+        $input = new StringInput($arguments);
+
+        $input->validate();
+
+        $options['args']    = $input->getArguments();
+        $options['options'] = $input->getOptions();
+
+        return $options;
     }
 }

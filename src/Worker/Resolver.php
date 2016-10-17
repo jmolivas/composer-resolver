@@ -4,12 +4,18 @@ namespace Toflar\ComposerResolver\Worker;
 
 use Composer\Factory;
 use Composer\Installer;
+use Composer\IO\ConsoleIO;
 use Composer\IO\IOInterface;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\JobIO;
+use Toflar\ComposerResolver\JobOutput;
 
 /**
  * Class Resolver
@@ -71,7 +77,6 @@ class Resolver
     public function run(int $pollingFrequency)
     {
         $predis = $this->predis;
-        $ttl    = $this->ttl;
         $job    = $predis->blpop($this->queueKey, $pollingFrequency);
 
         if (null !== $job && null !== ($jobData = $predis->get('jobs:' . $job[1]))) {
@@ -81,14 +86,9 @@ class Resolver
             $job->setStatus(Job::STATUS_PROCESSING);
             $predis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
 
-            // Create IO Bridge
-            $jobIO = new JobIO($job, function() use ($predis, $job, $ttl) {
-                $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
-            });
-
             // Process
             try {
-                $job = $this->resolve($job, $jobIO);
+                $job = $this->resolve($job);
             } catch (\Throwable $t) {
                 $this->logger->error('Error during resolving process: ' . $t->getMessage(), [
                     'line'  => $t->getLine(),
@@ -98,7 +98,7 @@ class Resolver
             }
 
             // Finished
-            $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
+            $predis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
 
             $this->logger->info('Finished working on job ' . $job->getId());
         }
@@ -108,13 +108,12 @@ class Resolver
     /**
      * Resolves a given job.
      *
-     * @param Job         $job
-     * @param IOInterface $io
+     * @param Job   $job
      *
      * @return Job
      * @throws \Exception
      */
-    private function resolve(Job $job, IOInterface $io) : Job
+    private function resolve(Job $job) : Job
     {
         // Create the composer.json in a temporary jobs directory where we
         // work on
@@ -131,7 +130,8 @@ class Resolver
         putenv('COMPOSER=' . $composerJson);
 
         // Run installer
-        $installer = $this->getInstaller($io);
+        $io = $this->getIo($job);
+        $installer = $this->getInstaller($io, $job);
         $out = $installer->run();
 
         // Only fetch the composer.lock if the result is fine
@@ -151,39 +151,143 @@ class Resolver
     /**
      * Get the installer.
      *
-     * @param IOInterface $io
+     * @param ConsoleIO $io
+     * @param Job       $job
      *
      * @return Installer
      */
-    private function getInstaller(IOInterface $io)
+    private function getInstaller(ConsoleIO $io, Job $job)
     {
-        $composer = $this->getComposer($io);
+        $composer = $this->getComposer($io, $job);
         $composer->getInstallationManager()->addInstaller(
             new Installer\NoopInstaller());
+
+        // General settings
         $installer = Installer::create($io, $composer)
             ->setUpdate(true) // Update
             ->setDryRun(true) // Dry run (= no autoload dump, no scripts)
-            ->setDevMode(true) // Enable dev
             ->setWriteLock(true) // Still write the lock file
             ->setVerbose(true) // Always verbose for composer. Verbosity is managed on the JobIO
         ;
+
+        // Job specific options
+        $options = $job->getComposerOptions();
+        $args    = (array) $options['args'];
+        $options = (array) $options['options'];
+
+        // Args: packages
+        if (isset($args['packages'])) {
+            $installer->setUpdateWhitelist((array) $args['packages']);
+        }
+
+        // Options: prefer-source
+        if (isset($options['prefer-source'])) {
+            $installer->setPreferSource(true);
+        }
+
+        // Options: prefer-dist
+        if (isset($options['prefer-dist'])) {
+            $installer->setPreferDist(true);
+        }
+
+        // Options: no-dev
+        if (isset($options['no-dev'])) {
+            $installer->setDevMode(false);
+        }
+
+        // Options: no-suggest
+        if (isset($options['no-suggest'])) {
+            $installer->setSkipSuggest(true);
+        }
+
+        // Options: prefer-stable
+        if (isset($options['prefer-stable'])) {
+            $installer->setPreferStable(true);
+        }
+
+        // Options: prefer-lowest
+        if (isset($options['prefer-lowest'])) {
+            $installer->setPreferLowest(true);
+        }
 
         return $installer;
     }
 
     /**
+     * Gets the IO based on job settings.
+     *
+     * @param Job   $job
+     */
+    private function getIo(Job $job)
+    {
+        $predis  = $this->predis;
+        $ttl     = $this->ttl;
+        $options = $job->getComposerOptions();
+        $options = (array) $options['options'];
+
+        // Basically just a dummy but it makes sure we don't have any interactivity!
+        $input = new ArrayInput([]);
+        $input->setInteractive(false);
+
+        $output = new JobOutput($this->getOutputVerbosity($options));
+        $output->setJob($job);
+        $output->setOnUpdate(function(Job $job) use ($predis, $ttl) {
+            $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
+        });
+
+        if (isset($options['ansi'])) {
+            $output->setDecorated(true);
+        }
+
+        if (isset($options['no-ansi'])) {
+            $output->setDecorated(false);
+        }
+
+        $io = new ConsoleIO($input, $output, new HelperSet());
+
+        if (isset($options['profile'])) {
+            $io->enableDebugging(microtime(true));
+        }
+
+        return $io;
+    }
+
+    /**
+     * Get the verbosity level based on the options.
+     *
+     * @param array $options
+     *
+     * @return int
+     */
+    private function getOutputVerbosity(array $options) : int
+    {
+        if (!isset($options['verbose'])) {
+            return OutputInterface::VERBOSITY_NORMAL;
+        }
+
+        switch ($options['verbose']) {
+            case 3:
+                return OutputInterface::VERBOSITY_DEBUG;
+            case 2:
+                return OutputInterface::VERBOSITY_VERY_VERBOSE;
+            case 1:
+                return OutputInterface::VERBOSITY_VERBOSE;
+        }
+
+        return OutputInterface::VERBOSITY_NORMAL;
+    }
+
+    /**
      * Get composer.
      *
-     * @param IOInterface $io
+     * @param ConsoleIO $io
+     * @param Job       $job
      *
      * @return \Composer\Composer
      */
-    private function getComposer(IOInterface $io)
+    private function getComposer(ConsoleIO $io, Job $job)
     {
-        // TODO: support extra parameters for the resolver
-        $disablePlugins = false;
-
-        // TODO: verbosity on  IO
+        $disablePlugins = true; // TODO
 
         return Factory::create($io, null, $disablePlugins);
     }
