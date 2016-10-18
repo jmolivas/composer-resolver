@@ -90,9 +90,9 @@ class JobsController
      */
     public function indexAction() : Response
     {
-        $numberOfJobsInQueue = $this->redis->llen($this->queueKey);
+        $numberOfJobsInQueue = (int) $this->redis->llen($this->queueKey);
         $numbersOfWorkers    = $this->workers;
-        $approxWaitingTime   = $numberOfJobsInQueue * $this->atpj / $numbersOfWorkers;
+        $approxWaitingTime   = (int) ($numberOfJobsInQueue * $this->atpj / $numbersOfWorkers);
 
         $dtF = new \DateTime('@0');
         $dtT = new \DateTime("@$approxWaitingTime");
