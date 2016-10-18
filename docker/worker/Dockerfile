@@ -19,7 +19,8 @@ RUN apk add --no-cache --repository "http://dl-cdn.alpinelinux.org/alpine/edge/t
     php7-json \
     php7-openssl \
     php7-phar \
-    php7-posix
+    php7-posix \
+    php7-opcache
 
 RUN mv /usr/bin/php7 /usr/bin/php
 
