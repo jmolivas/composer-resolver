@@ -232,17 +232,17 @@ class Resolver
             $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
         });
 
-        if (isset($options['ansi'])) {
+        if (isset($options['ansi']) && true == $options['ansi']) {
             $output->setDecorated(true);
         }
 
-        if (isset($options['no-ansi'])) {
+        if (isset($options['no-ansi']) && true == $options['no-ansi']) {
             $output->setDecorated(false);
         }
 
         $io = new JobIO($input, $output, new HelperSet());
 
-        if (isset($options['profile'])) {
+        if (isset($options['profile']) && true == $options['profile']) {
             $io->enableDebugging(microtime(true));
         }
 
