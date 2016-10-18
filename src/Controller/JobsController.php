@@ -160,6 +160,10 @@ class JobsController
             }
         }
 
+        $this->logger->debug('Created a new job and will push it to the queue now.', [
+            'job' => $job
+        ]);
+
         $this->redis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
         $this->redis->rpush($this->queueKey, [$job->getId()]);
 
