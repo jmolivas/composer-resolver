@@ -65,7 +65,7 @@ class JobOutput extends Output
         $currentOutput .= $message;
 
         if (true === $newline) {
-            $currentOutput .= "\n";
+            $currentOutput .= PHP_EOL;
         }
 
         $this->job->setComposerOutput($currentOutput);

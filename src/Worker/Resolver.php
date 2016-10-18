@@ -137,6 +137,10 @@ class Resolver
             $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
         }
 
+        $this->logger->debug('Resolved job.', [
+            'job' => $job
+        ]);
+
         // Remove job dir
         $fs->remove($jobDir);
 
