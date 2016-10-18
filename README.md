@@ -211,12 +211,6 @@ $ docker stack deploy composer-resolver
 That's it. Make sure you checkout the `web` service to publish the port 80 to
 the host machine.
 
-You can easily scale the service (most likely the workers) like this:
-
-```
-$ docker service scale composer-resolver_worker=40
-```
-
 ### Configure
 
 There are environment variables to configure the way the worker is
@@ -227,6 +221,23 @@ working (pun intended):
 * `COMPOSER-RESOLVER-JOBS-TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
 * `COMPOSER-RESOLVER-JOBS-ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
 * `COMPOSER-RESOLVER-WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
+
+### Manage / Scale
+
+You can easily scale the service (most likely the workers) like this:
+
+```
+$ docker service scale composer-resolver_worker=40
+```
+
+Remember to update the environment variables depending on what you scale.
+If you scale the workers, you likely want to inform the web service about
+the number of workers so that the information about the waiting time is
+more accurate:
+
+```
+$ docker service update --env-add COMPOSER-RESOLVER-WORKERS=40 composer-resolver_web
+```
 
 ## Development
 
