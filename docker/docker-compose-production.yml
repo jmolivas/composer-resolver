@@ -30,3 +30,5 @@ services:
             dockerfile: ./docker/worker/Dockerfile
         image: toflar/composer-resolver-worker:latest
         command: php /var/www/composer-resolver/bin/worker.php
+        environment:
+            - COMPOSER_CACHE_DIR=/var/composer-cache

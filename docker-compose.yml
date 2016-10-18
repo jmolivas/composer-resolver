@@ -28,6 +28,13 @@ services:
     worker:
         image: toflar/composer-resolver-worker:latest
         volumes:
+            - composer-cache:/var/composer-cache
             - ./:/var/www/composer-resolver
+        environment:
+            - COMPOSER_CACHE_DIR=/var/composer-cache
         depends_on:
             - redis
+
+# Composer cache which is shared for all workers
+volumes:
+    composer-cache:

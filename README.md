@@ -193,10 +193,28 @@ still writing the `composer.lock` file.
 
 Make use of the Docker 1.12+ features and just deploy the service using the bundle
 `composer-resolver.dab` and the Docker built-in orchestration features.
+As the "Docker Stacks and Distributed Application Bundles" are still an
+experimental feature of Docker, make sure you're running the latest beta
+of Docker itself. Be prepared for changes!
 
 ### Deploy
 
-Create a swarm first. Then run
+[Create a swarm](https://docs.docker.com/engine/reference/commandline/swarm_init/) first.
+
+After you created the swarm, create a volume service. It will be used
+for the Composer cache so all the worker containers can reuse the same
+composer cache:
+
+```
+$ docker volume create --name composer-cache
+```
+ 
+Obviously you can create a volume of any kind of driver you prefer. Just
+make sure it is named `composer-cache` as this is the default settings
+for the bundle. You can of course just set a different name and adjust
+the environment variable `COMPOSER_CACHE_DIR` for your worker service.
+
+Now let's deploy the services:
 
 ```
 $ docker deploy composer-resolver

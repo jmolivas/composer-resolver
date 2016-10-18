@@ -1,13 +1,13 @@
 {
   "Services": {
     "php-fpm": {
-      "Image": "toflar/composer-resolver-php-fpm@sha256:2ceb783b6a5fa71e720803675338a7ceaa0512c3e5818ba953833a0dc581967a", 
+      "Image": "toflar/composer-resolver-php-fpm@sha256:99d99124b4a8a59d87a2b2cd1842e022238e765d06e78a58c57bca00847dc2b6", 
       "Networks": [
         "default"
       ]
     }, 
     "redis": {
-      "Image": "redis@sha256:215fa745788070c35e9494ee894b9de19b208f46adca076bbed5b1b963e7ec9c", 
+      "Image": "redis@sha256:bad533c38c91466874f5a793a78d41758797d0fed269528fb87a49b26000a4f0", 
       "Networks": [
         "default"
       ], 
@@ -19,7 +19,7 @@
       ]
     }, 
     "web": {
-      "Image": "toflar/composer-resolver-web@sha256:cc6ebeebf1d3760ef652a24092fa8d9ff37209cf2c7c6a375fcd810f0669e74e", 
+      "Image": "toflar/composer-resolver-web@sha256:d003cbf3a9020a3727082e6e8bb0a84d759e2db59c881c5d0f6469bc63a9d9fc", 
       "Networks": [
         "default"
       ], 
@@ -35,7 +35,10 @@
         "php", 
         "/var/www/composer-resolver/bin/worker.php"
       ], 
-      "Image": "toflar/composer-resolver-worker@sha256:0dcb3f6309e59046355b58fa1eaf8263f9901cd8c9ec34615efcdbccf69348d1", 
+      "Env": [
+        "COMPOSER_CACHE_DIR=/var/composer-cache"
+      ], 
+      "Image": "toflar/composer-resolver-worker@sha256:8b86e23ceae46a3bdaa98d04277cc5b7b827e659b595a64646422d2f51f07e05", 
       "Networks": [
         "default"
       ]
