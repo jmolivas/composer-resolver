@@ -1,0 +1,15 @@
+[entryPoints]
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+
+[acme]
+entryPoint = "https"
+storageFile = "/etc/traefik/acme/acme.json"
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "docker.localhost"
+watch = true
+swarmmode = true
+

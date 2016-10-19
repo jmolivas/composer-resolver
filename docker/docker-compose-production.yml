@@ -7,8 +7,8 @@ services:
             context: ./../
             dockerfile: ./docker/web/Dockerfile
         image: toflar/composer-resolver-web:latest
-        ports:
-            - '80'
+        labels:
+            traefik.backend: https
 
     # API: PHP 7.* with FPM SAPI on Alpine Linux Container
     php-fpm:

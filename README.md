@@ -256,6 +256,42 @@ more accurate:
 $ docker service update --env-add COMPOSER-RESOLVER-WORKERS=40 composer-resolver_web
 ```
 
+### Make it accessible from the outside world
+
+As your `web` docker service is not accessible to the outside world yet
+we have to publish the ports we want it to work on to the host machine.
+You can just modify the `web` service and bind its ports to the host
+machine.
+
+I decided to use [traefik reverse proxy](https://docs.traefik.io). I
+wanted to expose my cloud service through SSL only and traefik helped
+me here as it handles automatic renewal of my SSL certificate via
+Let's Encrypt.
+
+I describe how I set it up here for both, my own documentation purposes
+and maybe a starting point for you. A reference `traefik.toml`
+configuration file can be found at `docker/traefik/treafik.toml`. 
+
+First, let's create a Docker volume again. We will use this for
+storing our Let's encrypt certificates:
+
+```
+$ docker volume create --name traefik-ssl-certificates
+```
+
+Then let's start the traefik service (note, commands relative to the
+root directory of this project):
+
+```
+$ docker service create \
+-p 433:433 \
+--mount type=volume,source=traefik-ssl-certificates,destination=/etc/traefik/acme \
+--mount type=bind,source=$(pwd)/docker/traefik/traefik.toml,destination=/etc/traefik/traefik.toml \
+--name traefik \
+traefik:camembert \
+--acme.email="<your-email-here>"
+```
+
 ## Development
 
 Development:
