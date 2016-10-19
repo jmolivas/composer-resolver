@@ -8,7 +8,7 @@ services:
             dockerfile: ./docker/web/Dockerfile
         image: toflar/composer-resolver-web:latest
         labels:
-            traefik.port: 433
+            traefik.port: '433'
         networks:
             - traefik-net
 
@@ -41,3 +41,4 @@ services:
 
 networks:
     traefik-net:
+        external: true
