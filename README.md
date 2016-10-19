@@ -292,6 +292,43 @@ traefik:camembert \
 --acme.email="<your-email-here>"
 ```
 
+
+### Configure swap
+
+Composer requires a lot of RAM which is the initial purpose of this project.
+As you'll scale the workers, it will very likely happen that your RAM is
+not sufficient at times. That's why you should make sure you configure
+enough swap memory.
+
+Note: These commands are here to illustrate how it's done on Ubuntu.
+
+To check if you have swap memory available, execute:
+
+```
+$ free -h
+```
+
+If there's no swap available, create a swap file like this:
+
+```
+$ sudo fallocate -l 4G /swapfile
+$ sudo chmod 600 /swapfile
+$ sudo mkswap /swapfile
+$ sudo swapon /swapfile
+```
+
+Make sure you choose an appropriate file size.
+Also make sure that the swap file is recreated when you reboot (commands
+include making a back up and removing it again in case anything goes
+wrong):
+
+```
+$ sudo cp /etc/fstab /etc/fstab.bak
+$ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+$ sudo rm /etc/fstab.bak
+```
+
+
 ## Development
 
 Development:
