@@ -3,34 +3,22 @@
     "php-fpm": {
       "Image": "toflar/composer-resolver-php-fpm@sha256:99d99124b4a8a59d87a2b2cd1842e022238e765d06e78a58c57bca00847dc2b6", 
       "Networks": [
-        "default"
+        "traefik-net"
       ]
     }, 
     "redis": {
       "Image": "redis@sha256:bad533c38c91466874f5a793a78d41758797d0fed269528fb87a49b26000a4f0", 
       "Networks": [
-        "default"
-      ], 
-      "Ports": [
-        {
-          "Port": 6379, 
-          "Protocol": "tcp"
-        }
+        "traefik-net"
       ]
     }, 
     "web": {
       "Image": "toflar/composer-resolver-web@sha256:d003cbf3a9020a3727082e6e8bb0a84d759e2db59c881c5d0f6469bc63a9d9fc", 
       "Labels": {
-        "traefik.backend": "cloud_backend"
+        "traefik.port": 433
       }, 
       "Networks": [
-        "default"
-      ], 
-      "Ports": [
-        {
-          "Port": 8080, 
-          "Protocol": "tcp"
-        }
+        "traefik-net"
       ]
     }, 
     "worker": {
@@ -43,7 +31,7 @@
       ], 
       "Image": "toflar/composer-resolver-worker@sha256:8b86e23ceae46a3bdaa98d04277cc5b7b827e659b595a64646422d2f51f07e05", 
       "Networks": [
-        "default"
+        "traefik-net"
       ]
     }
   }, 

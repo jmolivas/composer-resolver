@@ -7,10 +7,10 @@ services:
             context: ./../
             dockerfile: ./docker/web/Dockerfile
         image: toflar/composer-resolver-web:latest
-        ports:
-            - '80:8080'
         labels:
-            traefik.backend: cloud_backend
+            traefik.port: 433
+        networks:
+            - traefik-net
 
     # API: PHP 7.* with FPM SAPI on Alpine Linux Container
     php-fpm:
@@ -18,12 +18,14 @@ services:
             context: ./../
             dockerfile: ./docker/php-fpm/Dockerfile
         image: toflar/composer-resolver-php-fpm:latest
+        networks:
+            - traefik-net
 
     # API & Worker communication: Redis
     redis:
         image: redis:3.0-alpine
-        ports:
-            - '6379'
+        networks:
+            - traefik-net
 
     # Worker: PHP 7.* with CLI SAPI
     worker:
@@ -34,3 +36,8 @@ services:
         command: php /var/www/composer-resolver/bin/worker.php
         environment:
             - COMPOSER_CACHE_DIR=/var/composer-cache
+        networks:
+            - traefik-net
+
+networks:
+    traefik-net:
