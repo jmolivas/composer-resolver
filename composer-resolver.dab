@@ -3,13 +3,41 @@
     "php-fpm": {
       "Image": "toflar/composer-resolver-php-fpm@sha256:99d99124b4a8a59d87a2b2cd1842e022238e765d06e78a58c57bca00847dc2b6", 
       "Networks": [
-        "traefik-net"
+        "default"
       ]
     }, 
     "redis": {
       "Image": "redis@sha256:bad533c38c91466874f5a793a78d41758797d0fed269528fb87a49b26000a4f0", 
       "Networks": [
-        "traefik-net"
+        "default"
+      ]
+    }, 
+    "traefik": {
+      "Args": [
+        "--docker", 
+        "--docker.swarmmode", 
+        "--docker.domain=traefik", 
+        "--docker.watch", 
+        "--acme", 
+        "--acme.email=yanick.witschi@terminal42.ch"
+      ], 
+      "Image": "traefik@sha256:9cf3675a141ec33e8e307f22e15d1b93e2436707f400a7d75e53d71260e6ea6a", 
+      "Networks": [
+        "default"
+      ], 
+      "Ports": [
+        {
+          "Port": 80, 
+          "Protocol": "tcp"
+        }, 
+        {
+          "Port": 8080, 
+          "Protocol": "tcp"
+        }, 
+        {
+          "Port": 433, 
+          "Protocol": "tcp"
+        }
       ]
     }, 
     "web": {
@@ -18,7 +46,7 @@
         "traefik.port": "433"
       }, 
       "Networks": [
-        "traefik-net"
+        "default"
       ]
     }, 
     "worker": {
@@ -31,7 +59,7 @@
       ], 
       "Image": "toflar/composer-resolver-worker@sha256:8b86e23ceae46a3bdaa98d04277cc5b7b827e659b595a64646422d2f51f07e05", 
       "Networks": [
-        "traefik-net"
+        "default"
       ]
     }
   }, 
