@@ -15,7 +15,7 @@
     "web": {
       "Image": "toflar/composer-resolver-web@sha256:d003cbf3a9020a3727082e6e8bb0a84d759e2db59c881c5d0f6469bc63a9d9fc", 
       "Labels": {
-        "traefik.port": 433
+        "traefik.port": "433"
       }, 
       "Networks": [
         "traefik-net"
