@@ -8,12 +8,17 @@
     [entryPoints.https.tls]
 
 [acme]
-entryPoint = "https"
-storageFile = "/etc/traefik/acme/acme.json"
+  entryPoint = "https"
+  storageFile = "/etc/traefik/acme/acme.json"
+
+[frontends]
+  [frontends.cloud_frontend]
+  backend = "cloud_backend"
 
 [docker]
-endpoint = "unix:///var/run/docker.sock"
-domain = "docker.localhost"
-watch = true
-swarmmode = true
+  endpoint = "unix:///var/run/docker.sock"
+  domain = "docker.localhost"
+  watch = true
+  swarmmode = true
+  exposedbydefault = false
 
