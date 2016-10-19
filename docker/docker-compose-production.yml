@@ -7,8 +7,8 @@ services:
             context: ./../
             dockerfile: ./docker/web/Dockerfile
         image: toflar/composer-resolver-web:latest
-        expose:
-            - '8080:80'
+        ports:
+            - '80:8080'
         labels:
             traefik.backend: cloud_backend
 
@@ -22,7 +22,7 @@ services:
     # API & Worker communication: Redis
     redis:
         image: redis:3.0-alpine
-        expose:
+        ports:
             - '6379'
 
     # Worker: PHP 7.* with CLI SAPI
