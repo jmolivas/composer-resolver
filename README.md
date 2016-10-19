@@ -214,20 +214,19 @@ make sure it is named `composer-cache` as this is the default settings
 for the bundle. You can of course just set a different name and adjust
 the environment variable `COMPOSER_CACHE_DIR` for your worker service.
 
-Now let's deploy the services:
+Now you can just deploy all the needed services like this:
 
 ```
 $ docker deploy composer-resolver
 ```
 
-or (`deploy` is just an alias for `stack deploy`)
+Now, we have to link the `composer-cache` volume to our worker service:
 
 ```
-$ docker stack deploy composer-resolver
+$ docker service update --mount-add type=volume,source=composer-cache,destination=/var/composer-cache composer-resolver_worker
 ```
 
-That's it. Make sure you checkout the `web` service to publish the port 80 to
-the host machine.
+That's it. Check out the configuration options that are following now.
 
 ### Configure
 
