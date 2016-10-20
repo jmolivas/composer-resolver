@@ -406,6 +406,76 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('{"_readme":"foobar"}', $response->getContent());
     }
+
+    public function testGetComposerOutputActionWithInvalidJobId()
+    {
+        $redis = $this->getRedis(1);
+        $redis->expects($this->once())
+            ->method('__call')
+            ->with($this->equalTo('get'))
+            ->willReturn(null)
+        ;
+
+        $controller = new JobsController(
+            $redis,
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $response = $controller->getComposerOutputAction('nonsenseId');
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame('Job not found.', $response->getContent());
+    }
+
+    public function testGetComposerOutputAction()
+    {
+        $output = 'This is a nice' . PHP_EOL . 'command line output.';
+        $jobData = [
+            'id' => 'uniq.id',
+            'status' => Job::STATUS_FINISHED,
+            'composerJson' => '{"name":"foobar"}',
+            'composerLock' => '{"_readme":"foobar"}',
+            'composerOutput' => $output,
+        ];
+
+        $redis = $this->createMock(Client::class);
+        $redis->expects($this->any())
+            ->method('__call')
+            ->with(
+                $this->equalTo('get'),
+                $this->callback(function($args) use ($jobData) {
+                    try {
+                        $this->assertSame('jobs:' . $jobData['id'], $args[0]);
+                        return true;
+                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                        return false;
+                    }
+                })
+            )
+            ->willReturn(json_encode($jobData))
+        ;
+
+        $controller = new JobsController(
+            $redis,
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $response = $controller->getComposerOutputAction($jobData['id']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame($output, $response->getContent());
+    }
+
     public function indexActionDataProvider()
     {
         return [
