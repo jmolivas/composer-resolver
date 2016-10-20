@@ -157,7 +157,8 @@ class Resolver
      */
     private function getInstaller(JobIO $io, Job $job)
     {
-        $composer = $this->getComposer($io, $job);
+        // Plugins are always disabled for security reasons
+        $composer = Factory::create($io, null, true);
         $composer->getInstallationManager()->addInstaller(
             new Installer\NoopInstaller());
 
@@ -251,20 +252,5 @@ class Resolver
         }
 
         return $io;
-    }
-
-    /**
-     * Get composer.
-     *
-     * @param JobIO $io
-     * @param Job         $job
-     *
-     * @return \Composer\Composer
-     */
-    private function getComposer(JobIO $io, Job $job)
-    {
-        $disablePlugins = true; // TODO
-
-        return Factory::create($io, null, $disablePlugins);
     }
 }
