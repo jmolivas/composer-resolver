@@ -4,10 +4,5 @@
 # PHP stuff
 /jobs
 
-# Electron stuff
-/node_modules
-/app/bundles
-
-# Electron builder stuff
-/dist
-/app/node_modules
+# PHPUnit
+/coverage

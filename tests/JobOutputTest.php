@@ -48,4 +48,19 @@ class JobOutputTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('outputmessage' . "\n", $job->getComposerOutput());
         $this->assertTrue($iWasCalled);
     }
+
+    public function testNoWriteIfNoJob()
+    {
+        $iWasCalled = false;
+
+        $onUpdate = function() use (&$iWasCalled) {
+            $iWasCalled = true;
+        };
+        $jobOutput = new JobOutput();
+        $jobOutput->setOnUpdate($onUpdate);
+
+        $jobOutput->write('message', true);
+
+        $this->assertFalse($iWasCalled);
+    }
 }
