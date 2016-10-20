@@ -82,7 +82,31 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     'preferLowest'      => false,
                     'updateWhitelist'   => null
                 ]
-            ]
+            ],
+            'Test update white list ' => [
+                5, 5,
+                [
+                    'id' => 'foobar.id',
+                    'status' => Job::STATUS_PROCESSING,
+                    'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
+                    'composerOptions' => [
+                        'args' => [
+                            'packages' => ['package/one']
+                        ],
+                        'options' => []
+                    ]
+                ],
+                0,
+                [
+                    'preferSource'      => false,
+                    'preferDist'        => false,
+                    'devMode'           => false,
+                    'skipSuggest'       => false,
+                    'preferStable'      => false,
+                    'preferLowest'      => false,
+                    'updateWhitelist'   => ['package/one' => 0]
+                ]
+            ],
         ];
     }
 

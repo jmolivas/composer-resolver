@@ -186,8 +186,8 @@ class Resolver
 
         // Job specific options
         $options = $job->getComposerOptions();
-        $args    = (array) !isset($options['args']) ? [] : $options['args'];
-        $options = (array) !isset($options['options']) ? [] : $options['options'];
+        $args    = (array) ((!isset($options['args'])) ? [] : $options['args']);
+        $options = (array) ((!isset($options['options'])) ? [] : $options['options']);
 
         // Args: packages
         if (isset($args['packages']) && is_array($args['packages']) && 0 !== count($args['packages'])) {
@@ -239,7 +239,7 @@ class Resolver
         $predis    = $this->predis;
         $ttl       = $this->ttl;
         $options   = $job->getComposerOptions();
-        $options   = (array) !isset($options['options']) ? [] : $options['options'];
+        $options   = (array) ((!isset($options['options'])) ? [] : $options['options']);
         $verbosity = isset($options['verbosity']) ? $options['verbosity'] : OutputInterface::VERBOSITY_NORMAL;
 
         // Basically just a dummy but it makes sure we don't have any interactivity!
