@@ -63,7 +63,30 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $response = $controller->postAction($request);
 
         $this->assertSame(400, $response->getStatusCode());
-        $this->assertContains('Your composer.json does not contain valid json content.', $response->getContent());
+        $this->assertSame('Your composer.json does not contain valid json content.', $response->getContent());
+    }
+
+    public function testPostActionWithInvalidComposerSchema()
+    {
+        $controller = new JobsController(
+            $this->getRedis(1),
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $request = new Request([], [], [], [], [], [], '{"I am valid":"json","but I have":"no relation to the composer","schema":{"at":"all"}}');
+        $response = $controller->postAction($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+
+        $json = json_decode($response->getContent(), true);
+
+        $this->assertSame('Your provided composer.json does not comply with the composer.json schema!', $json['msg']);
+        $this->assertTrue(count($json['errors']) > 0);
     }
 
     public function indexAction()
