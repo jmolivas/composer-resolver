@@ -5,6 +5,7 @@ namespace Toflar\ComposerResolver\Test\Controller;
 
 use Predis\Client;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Toflar\ComposerResolver\Controller\JobsController;
 
@@ -44,6 +45,25 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertEquals($expected, $json);
+    }
+
+    public function testPostActionWithInvalidJson()
+    {
+        $controller = new JobsController(
+            $this->getRedis(1),
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $request = new Request([], [], [], [], [], [], 'I am invalid json.');
+        $response = $controller->postAction($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertContains('Your composer.json does not contain valid json content.', $response->getContent());
     }
 
     public function indexAction()
