@@ -23,8 +23,13 @@ class JobTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('composerJson', $job->getComposerJson());
 
         $job->setComposerOptions(['options']);
-
         $this->assertSame(['options'], $job->getComposerOptions());
+
+        $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
+        $this->assertSame(Job::STATUS_FINISHED_WITH_ERRORS, $job->getStatus());
+
+        $job->setComposerJson('newComposerJson');
+        $this->assertSame('newComposerJson', $job->getComposerJson());
     }
 
     public function testGetAsArray()
@@ -59,6 +64,22 @@ class JobTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('test', $job->getComposerLock());
         $this->assertSame(['options'], $job->getComposerOptions());
         $this->assertSame($array, $job->getAsArray());
+    }
+
+    public function testJsonSerialize()
+    {
+        $array = [
+            'id'                => 'foobar',
+            'status'            => Job::STATUS_PROCESSING,
+            'composerJson'      => 'composerJson',
+            'composerLock'      => 'test',
+            'composerOutput'    => 'composer-output',
+            'composerOptions'   => ['options'],
+        ];
+
+        $job = Job::createFromArray($array);
+
+        $this->assertSame('{"id":"foobar","status":"processing","composerJson":"composerJson","composerLock":"test","composerOutput":"composer-output","composerOptions":["options"]}', json_encode($job));
     }
 
     /**
@@ -133,7 +154,27 @@ class JobTest extends \PHPUnit_Framework_TestCase
                             'profile'       => false,
                         ],
                     ],
-                ]
+                ],
+                [
+                    '',
+                    [
+                        'args' => [
+                            'packages' => []
+                        ],
+                        'options' => [
+                            'prefer-source' => false,
+                            'prefer-dist'   => false,
+                            'no-dev'        => false,
+                            'no-suggest'    => false,
+                            'verbosity'     => OutputInterface::VERBOSITY_NORMAL,
+                            'prefer-stable' => false,
+                            'prefer-lowest' => false,
+                            'ansi'          => false,
+                            'no-ansi'       => false,
+                            'profile'       => false,
+                        ],
+                    ],
+                ],
         ];
     }
 }
