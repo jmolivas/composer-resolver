@@ -76,7 +76,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 [
                     'preferSource'      => false,
                     'preferDist'        => false,
-                    'devMode'           => false,
+                    'devMode'           => true,
                     'skipSuggest'       => false,
                     'preferStable'      => false,
                     'preferLowest'      => false,
@@ -100,10 +100,41 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 [
                     'preferSource'      => false,
                     'preferDist'        => false,
-                    'devMode'           => false,
+                    'devMode'           => true,
                     'skipSuggest'       => false,
                     'preferStable'      => false,
                     'preferLowest'      => false,
+                    'updateWhitelist'   => ['package/one' => 0]
+                ]
+            ],
+            'Test all other options' => [
+                5, 5,
+                [
+                    'id' => 'foobar.id',
+                    'status' => Job::STATUS_PROCESSING,
+                    'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
+                    'composerOptions' => [
+                        'args' => [
+                            'packages' => ['package/one']
+                        ],
+                        'options' => [
+                            'prefer-source' => true,
+                            'prefer-dist'   => true,
+                            'no-dev'        => true,
+                            'no-suggest'    => true,
+                            'prefer-stable' => true,
+                            'prefer-lowest' => true,
+                        ]
+                    ]
+                ],
+                0,
+                [
+                    'preferSource'      => true,
+                    'preferDist'        => true,
+                    'devMode'           => false,
+                    'skipSuggest'       => true,
+                    'preferStable'      => true,
+                    'preferLowest'      => true,
                     'updateWhitelist'   => ['package/one' => 0]
                 ]
             ],

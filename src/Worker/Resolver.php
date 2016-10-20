@@ -182,6 +182,7 @@ class Resolver
             ->setDryRun(true) // Dry run (= no autoload dump, no scripts)
             ->setWriteLock(true) // Still write the lock file
             ->setVerbose(true) // Always verbose for composer. Verbosity is managed on the JobIO
+            ->setDevMode(true) // Default is true, use --no-dev to disable
         ;
 
         // Job specific options
@@ -196,32 +197,32 @@ class Resolver
 
         // Options: prefer-source
         if (isset($options['prefer-source'])) {
-            $installer->setPreferSource($options['prefer-source']);
+            $installer->setPreferSource(true);
         }
 
         // Options: prefer-dist
         if (isset($options['prefer-dist'])) {
-            $installer->setPreferDist($options['prefer-dist']);
+            $installer->setPreferDist(true);
         }
 
         // Options: no-dev
         if (isset($options['no-dev'])) {
-            $installer->setDevMode($options['no-dev']);
+            $installer->setDevMode(false);
         }
 
         // Options: no-suggest
         if (isset($options['no-suggest'])) {
-            $installer->setSkipSuggest($options['no-suggest']);
+            $installer->setSkipSuggest(true);
         }
 
         // Options: prefer-stable
         if (isset($options['prefer-stable'])) {
-            $installer->setPreferStable($options['prefer-stable']);
+            $installer->setPreferStable(true);
         }
 
         // Options: prefer-lowest
         if (isset($options['prefer-lowest'])) {
-            $installer->setPreferLowest($options['prefer-lowest']);
+            $installer->setPreferLowest(true);
         }
 
         return $installer;
