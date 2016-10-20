@@ -132,7 +132,6 @@ class Resolver
         $fs = new Filesystem();
         $fs->dumpFile($composerJson, $job->getComposerJson());
 
-
         // Set working environment
         chdir($jobDir);
         putenv('COMPOSER_HOME=' . $jobDir);

@@ -65,16 +65,22 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
     public function runDataProvider()
     {
         return [
-            'test' => [
+            'Test default settings' => [
                 5, 5,
                 [
                     'id' => 'foobar.id',
                     'status' => Job::STATUS_PROCESSING,
-                    'composerJson' => '{"name":"whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
+                    'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                 ],
                 0,
                 [
-                    'preferStable' => false
+                    'preferSource'      => false,
+                    'preferDist'        => false,
+                    'devMode'           => false,
+                    'skipSuggest'       => false,
+                    'preferStable'      => false,
+                    'preferLowest'      => false,
+                    'updateWhitelist'   => null
                 ]
             ]
         ];
