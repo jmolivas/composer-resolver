@@ -31,7 +31,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider indexAction
+     * @dataProvider indexActionDataProvider
      */
     public function testIndexAction($atpj, $workers, $queueLength, array $expected)
     {
@@ -297,7 +297,50 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('Job not found.', $response->getContent());
     }
 
-    public function indexAction()
+    /**
+     * @dataProvider getActionDataProvider
+     */
+    public function testGetAction(array $jobData, $expectedStatusCode, array $expectedContent)
+    {
+        $redis = $this->createMock(Client::class);
+        $redis->expects($this->any())
+            ->method('__call')
+            ->with(
+                $this->equalTo('get'),
+                $this->callback(function($args) use ($jobData) {
+                    try {
+                        $this->assertSame('jobs:' . $jobData['id'], $args[0]);
+                        return true;
+                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                        return false;
+                    }
+                })
+            )
+            ->willReturn(json_encode($jobData))
+        ;
+
+        $routes = new RouteCollection();
+        $routes->add('jobs_get_composer_lock', new Route('/jobs/{jobId}/composerLock'));
+        $routes->add('jobs_get_composer_output', new Route('/jobs/{jobId}/composerOutput'));
+        $urlGenerator = new UrlGenerator($routes, new RequestContext());
+
+        $controller = new JobsController(
+            $redis,
+            $urlGenerator,
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $response = $controller->getAction($jobData['id']);
+
+        $this->assertSame($expectedStatusCode, $response->getStatusCode());
+        $this->assertEquals($expectedContent, json_decode($response->getContent(), true));
+    }
+
+    public function indexActionDataProvider()
     {
         return [
             [
@@ -336,6 +379,45 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public static function getActionDataProvider()
+    {
+        return [
+            'Test processing' => [
+                [
+                    'id' => 'foobar.uuid',
+                    'status' => Job::STATUS_PROCESSING,
+                    'composerJson' => 'composerJsonContent'
+                ],
+                202,
+                [
+                    'jobId' => 'foobar.uuid',
+                    'status' => Job::STATUS_PROCESSING,
+                    'links' => [
+                        'composerLock' => '/jobs/foobar.uuid/composerLock',
+                        'composerOutput' => '/jobs/foobar.uuid/composerOutput'
+
+                    ]
+                ]
+            ],
+            'Test finished' => [
+                [
+                    'id' => 'foobar.uuid',
+                    'status' => Job::STATUS_FINISHED,
+                    'composerJson' => 'composerJsonContent'
+                ],
+                200,
+                [
+                    'jobId' => 'foobar.uuid',
+                    'status' => Job::STATUS_FINISHED,
+                    'links' => [
+                        'composerLock' => '/jobs/foobar.uuid/composerLock',
+                        'composerOutput' => '/jobs/foobar.uuid/composerOutput'
+
+                    ]
+                ]
+            ],
+        ];
+    }
 
     private function getRedis($queueLength = 1)
     {
