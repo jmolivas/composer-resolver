@@ -272,6 +272,30 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('/jobs/' . $processingJob->getId(), $response->headers->get('Location'));
     }
 
+    public function testGetActionWithInvalidJobId()
+    {
+        $redis = $this->getRedis(1);
+        $redis->expects($this->once())
+            ->method('__call')
+            ->with($this->equalTo('get'))
+            ->willReturn(null)
+        ;
+
+        $controller = new JobsController(
+            $redis,
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $response = $controller->getAction('nonsenseId');
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame('Job not found.', $response->getContent());
+    }
 
     public function indexAction()
     {
