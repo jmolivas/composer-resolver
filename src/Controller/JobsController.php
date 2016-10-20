@@ -225,7 +225,7 @@ class JobsController
             return new Response('Job not found.', 404);
         }
 
-        return new JsonResponse($job->getComposerLock());
+        return new JsonResponse($job->getComposerLock(), 200, [], true);
     }
 
     /**
