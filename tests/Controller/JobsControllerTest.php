@@ -239,6 +239,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         ];
 
         $request = new Request([], [], [], [], [], [], json_encode($composerJson));
+        $request->headers->set('Composer-Resolver-Command', '--profile -vvv --prefer-stable');
 
         $response = $controller->postAction($request);
 
@@ -255,7 +256,18 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         ]], $json['repositories']);
 
         $this->assertSame(Job::STATUS_QUEUED, $processingJob->getStatus());
-
+        $this->assertEquals(['args' => ['packages' => []], 'options' => [
+            'prefer-source' => false,
+            'prefer-dist' => false,
+            'no-dev' => false,
+            'no-suggest' => false,
+            'prefer-stable' => true,
+            'prefer-lowest' => false,
+            'ansi' => false,
+            'no-ansi' => false,
+            'profile' => true,
+            'verbosity' => 256
+        ]], $processingJob->getComposerOptions());
         $this->assertTrue($response->headers->has('Location'));
         $this->assertSame('/jobs/' . $processingJob->getId(), $response->headers->get('Location'));
     }
