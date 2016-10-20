@@ -118,6 +118,37 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('Your composer.json must provide a platform configuration (see https://getcomposer.org/doc/06-config.md#platform). Otherwise, you will not get the correct dependencies for your specific platform needs.', $response->getContent());
     }
 
+    public function testPostActionWithValidPayloadButInvalidResolverHeader()
+    {
+        $controller = new JobsController(
+            $this->getRedis(1),
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+
+        $composerJson = [
+            'name' => 'whatever',
+            'description' => 'whatever',
+            'config' => [
+                'platform' => [
+                    'php' => '7.0.11'
+                ],
+            ],
+        ];
+
+        $request = new Request([], [], [], [], [], [], json_encode($composerJson));
+        $request->headers->set('Composer-Resolver-Command', 'these are complete nonsense --params');
+        $response = $controller->postAction($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('You provided Composer-Resolver-Command header. The content of it is not accepted. Check the manual for the correct usage.', $response->getContent());
+    }
+
     public function testPostActionWithValidPayload()
     {
         $processingJob = null;
