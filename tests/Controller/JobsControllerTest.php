@@ -6,8 +6,13 @@ namespace Toflar\ComposerResolver\Test\Controller;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 use Toflar\ComposerResolver\Controller\JobsController;
+use Toflar\ComposerResolver\Job;
 
 class JobsControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -112,6 +117,118 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(400, $response->getStatusCode());
         $this->assertSame('Your composer.json must provide a platform configuration (see https://getcomposer.org/doc/06-config.md#platform). Otherwise, you will not get the correct dependencies for your specific platform needs.', $response->getContent());
     }
+
+    public function testPostActionWithValidPayload()
+    {
+        $processingJob = null;
+        $logger = $this->getLogger();
+        $logger->expects($this->once())
+            ->method('debug')
+            ->with(
+                $this->equalTo('Created a new job and will push it to the queue now.'),
+                $this->callback(function($args) use (&$processingJob) {
+                    $processingJob = $args['job'];
+                    return $processingJob instanceof Job;
+                })
+            );
+
+        $redis = $this->getRedis(1);
+        $redis->expects($this->exactly(2))
+            ->method('__call')
+            ->withConsecutive(
+                // setex call
+                [
+                    $this->equalTo('setex'),
+                    $this->callback(function($args) {
+                        try {
+                            $this->assertStringStartsWith('jobs:', $args[0]);
+                            $this->assertInternalType('int', $args[1]);
+                            $this->assertJson($args[2]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ],
+                // rpush call
+                [
+                    $this->equalTo('rpush'),
+                    $this->callback(function($args) {
+                        try {
+                            $this->assertInternalType('string', $args[0]);
+                            $this->assertInternalType('array', $args[1]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ]
+            );
+
+        $routes = new RouteCollection();
+        $routes->add('jobs_get', new Route('/jobs/{jobId}'));
+        $urlGenerator = new UrlGenerator($routes, new RequestContext());
+        
+        $controller = new JobsController(
+            $redis,
+            $urlGenerator,
+            $logger,
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $composerJson = [
+            'name' => 'whatever',
+            'description' => 'whatever',
+            'config' => [
+                'platform' => [
+                    'php' => '7.0.11'
+                ],
+            ],
+            // This is needed to check if the composer.json is correctly sanitized
+            'repositories' => [
+                // valid one
+                [
+                    'type' => 'vcs',
+                    'url' => 'http://whatever.com'
+                ],
+                // local one - invalid
+                [
+                    'type' => 'git',
+                    'url' => '/usr/foobar/repos/project/bundle'
+                ],
+                // artifact one - invalid
+                [
+                    'type' => 'artifact',
+                    'url' => './repos/artifact'
+                ],
+            ]
+        ];
+
+        $request = new Request([], [], [], [], [], [], json_encode($composerJson));
+
+        $response = $controller->postAction($request);
+
+        /** @var Job $processingJob */
+        $this->assertInternalType('string', $processingJob->getId());
+        $this->assertJson($processingJob->getComposerJson());
+
+        $json = json_decode($processingJob->getComposerJson(), true);
+        // Assert repositories
+        $this->assertCount(1, $json['repositories']);
+        $this->assertEquals([[
+            'type' => 'vcs',
+            'url' => 'http://whatever.com'
+        ]], $json['repositories']);
+
+        $this->assertSame(Job::STATUS_QUEUED, $processingJob->getStatus());
+
+        $this->assertTrue($response->headers->has('Location'));
+        $this->assertSame('/jobs/' . $processingJob->getId(), $response->headers->get('Location'));
+    }
+
 
     public function indexAction()
     {
