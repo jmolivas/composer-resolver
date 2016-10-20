@@ -48,6 +48,11 @@ class Resolver
     private $ttl;
 
     /**
+     * @var int
+     */
+    private $mockRunResult = null;
+
+    /**
      * Resolver constructor.
      *
      * @param Client          $predis
@@ -63,6 +68,14 @@ class Resolver
         $this->jobsDir = $jobsDir;
         $this->queueKey = $queueKey;
         $this->ttl = $ttl;
+    }
+
+    /**
+     * @param int $mockRunResult
+     */
+    public function setMockRunResult(int $mockRunResult)
+    {
+        $this->mockRunResult = $mockRunResult;
     }
 
     /**
@@ -119,15 +132,16 @@ class Resolver
         $fs = new Filesystem();
         $fs->dumpFile($composerJson, $job->getComposerJson());
 
+
         // Set working environment
         chdir($jobDir);
         putenv('COMPOSER_HOME=' . $jobDir);
         putenv('COMPOSER=' . $composerJson);
 
         // Run installer
-        $io = $this->getIo($job);
+        $io = $this->getIO($job);
         $installer = $this->getInstaller($io, $job);
-        $out = $installer->run();
+        $out = null !== $this->mockRunResult ?: $installer->run();
 
         // Only fetch the composer.lock if the result is fine
         if (0 === $out) {
@@ -138,7 +152,8 @@ class Resolver
         }
 
         $this->logger->debug('Resolved job.', [
-            'job' => $job
+            'job' => $job,
+            'installer' => $installer,
         ]);
 
         // Remove job dir
@@ -159,8 +174,8 @@ class Resolver
     {
         // Plugins are always disabled for security reasons
         $composer = Factory::create($io, null, true);
-        $composer->getInstallationManager()->addInstaller(
-            new Installer\NoopInstaller());
+
+        $composer->getInstallationManager()->addInstaller(new Installer\NoopInstaller());
 
         // General settings
         $installer = Installer::create($io, $composer)
@@ -172,8 +187,8 @@ class Resolver
 
         // Job specific options
         $options = $job->getComposerOptions();
-        $args    = (array) $options['args'];
-        $options = (array) $options['options'];
+        $args    = (array) !isset($options['args']) ? [] : $options['args'];
+        $options = (array) !isset($options['options']) ? [] : $options['options'];
 
         // Args: packages
         if (isset($args['packages']) && is_array($args['packages']) && 0 !== count($args['packages'])) {
@@ -220,18 +235,18 @@ class Resolver
      *
      * @return JobIO
      */
-    private function getIo(Job $job)
+    private function getIO(Job $job)
     {
-        $predis  = $this->predis;
-        $ttl     = $this->ttl;
-        $options = $job->getComposerOptions();
-        $options = (array) $options['options'];
+        $predis    = $this->predis;
+        $ttl       = $this->ttl;
+        $options   = $job->getComposerOptions();
+        $options   = (array) !isset($options['options']) ? [] : $options['options'];
+        $verbosity = isset($options['verbosity']) ? $options['verbosity'] : OutputInterface::VERBOSITY_NORMAL;
 
         // Basically just a dummy but it makes sure we don't have any interactivity!
         $input = new ArrayInput([]);
         $input->setInteractive(false);
-
-        $output = new JobOutput($options['verbosity'] ?: OutputInterface::VERBOSITY_NORMAL);
+        $output = new JobOutput($verbosity);
         $output->setJob($job);
         $output->setOnUpdate(function(Job $job) use ($predis, $ttl) {
             $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
