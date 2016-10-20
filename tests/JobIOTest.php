@@ -5,6 +5,7 @@ namespace Toflar\ComposerResolver\Test;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Toflar\ComposerResolver\JobIO;
 
 class JobIOTest extends \PHPUnit_Framework_TestCase
@@ -29,14 +30,21 @@ class JobIOTest extends \PHPUnit_Framework_TestCase
 
         $mock->expects($this->once())
             ->method('write')
-            ->withAnyParameters();
+            ->with(
+                $this->equalTo('test'),
+                $this->isTrue(),
+                $this->equalTo(OutputInterface::VERBOSITY_NORMAL)
+            );
 
         $mock->expects($this->once())
             ->method('writeError')
-            ->withAnyParameters();
-
+            ->with(
+                $this->equalTo('msg'),
+                $this->isFalse(),
+                $this->equalTo(OutputInterface::VERBOSITY_VERY_VERBOSE)
+            );
         /** @var JobIO $mock */
-        $mock->overwrite('test');
-        $mock->overwriteError('test');
+        $mock->overwrite('test', true, null, OutputInterface::VERBOSITY_NORMAL);
+        $mock->overwriteError('msg', false, null, OutputInterface::VERBOSITY_VERY_VERBOSE);
     }
 }
