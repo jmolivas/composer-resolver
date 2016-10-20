@@ -89,6 +89,30 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(count($json['errors']) > 0);
     }
 
+    public function testPostActionWithNoPlatformConfigProvided()
+    {
+        $controller = new JobsController(
+            $this->getRedis(1),
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $composerJson = [
+            'name' => 'whatever',
+            'description' => 'whatever'
+        ];
+
+        $request = new Request([], [], [], [], [], [], json_encode($composerJson));
+        $response = $controller->postAction($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('Your composer.json must provide a platform configuration (see https://getcomposer.org/doc/06-config.md#platform). Otherwise, you will not get the correct dependencies for your specific platform needs.', $response->getContent());
+    }
+
     public function indexAction()
     {
         return [

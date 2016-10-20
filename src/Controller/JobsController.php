@@ -306,7 +306,7 @@ class JobsController
         $composerJsonData   = json_decode($composerJson, true);
 
         // Check for presence of platform config
-        if (!is_array($composerJsonData['config']['platform'])) {
+        if (!isset($composerJsonData['config']['platform']) || !is_array($composerJsonData['config']['platform'])) {
 
             return false;
         }
