@@ -140,18 +140,23 @@ class Resolver
         // Run installer
         $io = $this->getIO($job);
         $installer = $this->getInstaller($io, $job);
-        $out = null !== $this->mockRunResult ?: $installer->run();
+        $out = null !== $this->mockRunResult ? $this->mockRunResult : $installer->run();
 
         // Only fetch the composer.lock if the result is fine
         if (0 === $out) {
-            $job->setComposerLock((string) file_get_contents($composerLock))
-                ->setStatus(Job::STATUS_FINISHED);
+
+            // Do not set the composer.lock file if mocking the run
+            if (null === $this->mockRunResult) {
+                $job->setComposerLock((string) file_get_contents($composerLock));
+            }
+
+            $job->setStatus(Job::STATUS_FINISHED);
         } else {
             $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
         }
 
         $this->logger->debug('Resolved job.', [
-            'job' => $job,
+            'job'       => $job,
             'installer' => $installer,
         ]);
 
