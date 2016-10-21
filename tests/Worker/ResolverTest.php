@@ -27,22 +27,23 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
      * tests. We do test if the worker does set the correct settings on the installer
      * and if it behaves correctly itself.
      *
-     * @dataProvider runDataProvider
+     * @dataProvider successfulRunDataProvider
      */
-    public function testRun($pollingFrequency, $ttl, $jobData, $runResult, $installerAssertionProperties)
+    public function testSuccessfulRun($jobData, $installerAssertionProperties)
     {
         $installerRef = null;
         $queueKey = 'whatever';
+        $pollingFrequency = 5;
 
         $resolver = new Resolver(
-            $this->getRedis($queueKey, $pollingFrequency, $ttl, $jobData),
+            $this->getRedis($queueKey, $pollingFrequency, $jobData),
             $this->getLogger($installerRef),
             __DIR__,
             $queueKey,
             5
         );
 
-        $resolver->setMockRunResult($runResult);
+        $resolver->setMockRunResult(0);
         $resolver->run($pollingFrequency);
 
         // Test the installer values by using reflection as unfortunately
@@ -62,17 +63,15 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function runDataProvider()
+    public function successfulRunDataProvider()
     {
         return [
             'Test default settings' => [
-                5, 5,
                 [
                     'id' => 'foobar.id',
                     'status' => Job::STATUS_PROCESSING,
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                 ],
-                0,
                 [
                     'preferSource'      => false,
                     'preferDist'        => false,
@@ -84,7 +83,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 ]
             ],
             'Test update white list ' => [
-                5, 5,
                 [
                     'id' => 'foobar.id',
                     'status' => Job::STATUS_PROCESSING,
@@ -96,7 +94,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                         'options' => []
                     ]
                 ],
-                0,
                 [
                     'preferSource'      => false,
                     'preferDist'        => false,
@@ -108,7 +105,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 ]
             ],
             'Test all other options' => [
-                5, 5,
                 [
                     'id' => 'foobar.id',
                     'status' => Job::STATUS_PROCESSING,
@@ -127,7 +123,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                         ]
                     ]
                 ],
-                0,
                 [
                     'preferSource'      => true,
                     'preferDist'        => true,
@@ -141,7 +136,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function getRedis($queueKey, $pollingFrequency, $ttl, $jobData)
+    private function getRedis($queueKey, $pollingFrequency, $jobData)
     {
         $mock = $this->createMock(Client::class);
         $mock->expects($this->at(0))
