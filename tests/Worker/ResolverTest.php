@@ -245,6 +245,29 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 true,
                 true
             ],
+            'Test no-ansi console output option' => [
+                [
+                    'id' => 'foobar.id',
+                    'status' => Job::STATUS_PROCESSING,
+                    'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
+                    'composerOptions' => [
+                        'options' => [
+                            'no-ansi' => true,
+                        ]
+                    ]
+                ],
+                [
+                    'preferSource'      => false,
+                    'preferDist'        => false,
+                    'devMode'           => true,
+                    'skipSuggest'       => false,
+                    'preferStable'      => false,
+                    'preferLowest'      => false,
+                    'updateWhitelist'   => null
+                ],
+                null,
+                false
+            ],
         ];
     }
 
