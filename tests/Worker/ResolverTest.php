@@ -1,6 +1,6 @@
 <?php
 
-namespace Toflar\ComposerResolver\Test\Worker;
+namespace Toflar\ComposerResolver\Tests\Worker;
 
 use Composer\Installer;
 use Monolog\Logger;

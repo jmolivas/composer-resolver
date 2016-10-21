@@ -1,6 +1,6 @@
 <?php
 
-namespace Toflar\ComposerResolver\Test;
+namespace Toflar\ComposerResolver\Tests;
 
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\JobOutput;

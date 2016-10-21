@@ -32,6 +32,11 @@
             "Toflar\\ComposerResolver\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Toflar\\ComposerResolver\\Tests\\": "tests"
+        }
+    },
     "repositories": [
         {
             "type": "vcs",

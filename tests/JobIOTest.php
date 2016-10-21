@@ -1,6 +1,6 @@
 <?php
 
-namespace Toflar\ComposerResolver\Test;
+namespace Toflar\ComposerResolver\Tests;
 
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\ArrayInput;

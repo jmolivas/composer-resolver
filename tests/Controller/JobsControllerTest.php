@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Toflar\ComposerResolver\Test\Controller;
+namespace Toflar\ComposerResolver\Tests\Controller;
 
 use Predis\Client;
 use Psr\Log\LoggerInterface;
