@@ -3,6 +3,7 @@
 namespace Toflar\ComposerResolver\Test\Worker;
 
 use Composer\Installer;
+use Monolog\Logger;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Toflar\ComposerResolver\Job;
@@ -20,6 +21,38 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             5
         );
         $this->assertInstanceOf('Toflar\ComposerResolver\Worker\Resolver', $resolver);
+    }
+
+    public function testLogsOnExceptionDuringRun()
+    {
+        $queueKey = 'whatever';
+        $pollingFrequency = 5;
+        $jobData = [
+            'id' => 'foobar.id',
+            'status' => Job::STATUS_PROCESSING,
+            'composerJson' => '{very invalid stuff which will force an exception thrown}',
+        ];
+        $logger = $this->createMock(Logger::class);
+        $logger->expects($this->once())
+            ->method('error')
+            ->with(
+                $this->stringStartsWith('Error during resolving process:'),
+                $this->callback(function($array) {
+                    return array_key_exists('line', $array)
+                        && array_key_exists('file', $array)
+                        && array_key_exists('trace', $array);
+                })
+            );
+
+        $resolver = new Resolver(
+            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $logger,
+            __DIR__,
+            $queueKey,
+            5
+        );
+
+        $resolver->run($pollingFrequency);
     }
 
     /**
