@@ -55,6 +55,33 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $resolver->run($pollingFrequency);
     }
 
+    public function testUnsuccessfulRun()
+    {
+        $installerRef = null;
+        $jobRef = null;
+        $queueKey = 'whatever';
+        $pollingFrequency = 5;
+        $jobData = [
+            'id' => 'foobar.id',
+            'status' => Job::STATUS_PROCESSING,
+            'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
+        ];
+
+        $resolver = new Resolver(
+            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getLogger($installerRef, $jobRef),
+            __DIR__,
+            $queueKey,
+            5
+        );
+
+        $resolver->setMockRunResult(1);
+        $resolver->run($pollingFrequency);
+
+        /** @var Job $jobRef */
+        $this->assertSame(Job::STATUS_FINISHED_WITH_ERRORS, $jobRef->getStatus());
+    }
+
     /**
      * Does not test the outcome of composer itself as composer has its dedicated
      * tests. We do test if the worker does set the correct settings on the installer
