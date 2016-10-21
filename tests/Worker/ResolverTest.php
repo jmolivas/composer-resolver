@@ -7,6 +7,7 @@ use Monolog\Logger;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Toflar\ComposerResolver\Job;
+use Toflar\ComposerResolver\JobIO;
 use Toflar\ComposerResolver\Worker\Resolver;
 
 class ResolverTest extends \PHPUnit_Framework_TestCase
@@ -89,7 +90,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider successfulRunDataProvider
      */
-    public function testSuccessfulRun($jobData, $installerAssertionProperties)
+    public function testSuccessfulRun($jobData, $installerAssertionProperties, $shouldDebugEnabled, $shouldBeDecorated)
     {
         $installerRef = null;
         $jobRef = null;
@@ -110,6 +111,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
         // Test the installer values by using reflection as unfortunately
         // a lot of variables do not have any getter method
+        $io = null;
 
         /** @var Installer $installerRef */
         foreach ($this->getPropertiesOfClassIncludingParents($installerRef) as $k => $v) {
@@ -119,7 +121,24 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     $v
                 );
             }
+
+            if ('io' === $k) {
+                $io = $v;
+            }
         }
+
+        // Assert startTime
+        /* @var JobIO $io */
+        $ioProperties = $this->getPropertiesOfClassIncludingParents($io);
+
+        if ($shouldDebugEnabled) {
+            $this->assertNotNull($ioProperties['startTime']);
+        } else {
+            $this->assertNull($ioProperties['startTime']);
+        }
+
+        // Assert decorated (ansi)
+        $this->assertSame($shouldBeDecorated, $io->getOutput()->isDecorated());
 
         /** @var Job $jobRef */
         $this->assertSame(Job::STATUS_FINISHED, $jobRef->getStatus());
@@ -143,7 +162,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     'preferStable'      => false,
                     'preferLowest'      => false,
                     'updateWhitelist'   => null
-                ]
+                ],
+                null,
+                false
             ],
             'Test update white list ' => [
                 [
@@ -165,9 +186,11 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     'preferStable'      => false,
                     'preferLowest'      => false,
                     'updateWhitelist'   => ['package/one' => 0]
-                ]
+                ],
+                null,
+                false
             ],
-            'Test all other options' => [
+            'Test all other composer related options' => [
                 [
                     'id' => 'foobar.id',
                     'status' => Job::STATUS_PROCESSING,
@@ -194,7 +217,33 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     'preferStable'      => true,
                     'preferLowest'      => true,
                     'updateWhitelist'   => ['package/one' => 0]
-                ]
+                ],
+                null,
+                false
+            ],
+            'Test console output related options' => [
+                [
+                    'id' => 'foobar.id',
+                    'status' => Job::STATUS_PROCESSING,
+                    'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
+                    'composerOptions' => [
+                        'options' => [
+                            'profile' => true,
+                            'ansi'    => true,
+                        ]
+                    ]
+                ],
+                [
+                    'preferSource'      => false,
+                    'preferDist'        => false,
+                    'devMode'           => true,
+                    'skipSuggest'       => false,
+                    'preferStable'      => false,
+                    'preferLowest'      => false,
+                    'updateWhitelist'   => null
+                ],
+                true,
+                true
             ],
         ];
     }

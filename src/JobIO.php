@@ -12,6 +12,22 @@ use Composer\IO\ConsoleIO;
 class JobIO extends ConsoleIO
 {
     /**
+     * @return \Symfony\Component\Console\Input\InputInterface
+     */
+    public function getInput()
+    {
+        return $this->input;
+    }
+
+    /**
+     * @return \Symfony\Component\Console\Output\OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function overwrite($messages, $newline = true, $size = null, $verbosity = self::NORMAL)
