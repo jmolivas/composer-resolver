@@ -53,6 +53,11 @@ class Resolver
     private $mockRunResult = null;
 
     /**
+     * @var string
+     */
+    private $mockComposerLock = null;
+
+    /**
      * Resolver constructor.
      *
      * @param Client          $predis
@@ -76,6 +81,14 @@ class Resolver
     public function setMockRunResult(int $mockRunResult)
     {
         $this->mockRunResult = $mockRunResult;
+    }
+
+    /**
+     * @param string $mockComposerLock
+     */
+    public function setMockComposerLock(string $mockComposerLock)
+    {
+        $this->mockComposerLock = $mockComposerLock;
     }
 
     /**
@@ -144,13 +157,12 @@ class Resolver
 
         // Only fetch the composer.lock if the result is fine
         if (0 === $out) {
+            $lockContent = (string) (null !== $this->mockComposerLock)
+                ? $this->mockComposerLock
+                : file_get_contents($composerLock);
 
-            // Do not set the composer.lock file if mocking the run
-            if (null === $this->mockRunResult) {
-                $job->setComposerLock((string) file_get_contents($composerLock));
-            }
-
-            $job->setStatus(Job::STATUS_FINISHED);
+            $job->setComposerLock($lockContent)
+                    ->setStatus(Job::STATUS_FINISHED);
         } else {
             $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
         }

@@ -65,18 +65,20 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
     public function testSuccessfulRun($jobData, $installerAssertionProperties)
     {
         $installerRef = null;
+        $jobRef = null;
         $queueKey = 'whatever';
         $pollingFrequency = 5;
 
         $resolver = new Resolver(
             $this->getRedis($queueKey, $pollingFrequency, $jobData),
-            $this->getLogger($installerRef),
+            $this->getLogger($installerRef, $jobRef),
             __DIR__,
             $queueKey,
             5
         );
 
         $resolver->setMockRunResult(0);
+        $resolver->setMockComposerLock('composer-lock-result');
         $resolver->run($pollingFrequency);
 
         // Test the installer values by using reflection as unfortunately
@@ -94,6 +96,10 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 );
             }
         }
+
+        /** @var Job $jobRef */
+        $this->assertSame(Job::STATUS_FINISHED, $jobRef->getStatus());
+        $this->assertSame('composer-lock-result', $jobRef->getComposerLock());
     }
 
     public function successfulRunDataProvider()
@@ -208,7 +214,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         return $mock;
     }
 
-    private function getLogger(&$installerRef)
+    private function getLogger(&$installerRef, &$jobRef)
     {
         $mock = $this->createMock(LoggerInterface::class);
 
@@ -216,8 +222,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             ->method('debug')
             ->with(
                 $this->equalTo('Resolved job.'),
-                $this->callback(function($args) use (&$installerRef) {
+                $this->callback(function($args) use (&$installerRef, &$jobRef) {
                     $installerRef = $args['installer'];
+                    $jobRef = $args['job'];
                     return true;
                 })
             )
