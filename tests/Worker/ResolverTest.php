@@ -112,14 +112,11 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         // a lot of variables do not have any getter method
 
         /** @var Installer $installerRef */
-        $reflection = new \ReflectionClass($installerRef);
-
-        foreach ($reflection->getProperties() as $property) {
-            if (in_array($property->getName(), array_keys($installerAssertionProperties))) {
-                $property->setAccessible(true);
+        foreach ($this->getPropertiesOfClassIncludingParents($installerRef) as $k => $v) {
+            if (in_array($k, array_keys($installerAssertionProperties))) {
                 $this->assertSame(
-                    $installerAssertionProperties[$property->getName()],
-                    $property->getValue($installerRef)
+                    $installerAssertionProperties[$k],
+                    $v
                 );
             }
         }
@@ -258,5 +255,22 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         ;
 
         return $mock;
+    }
+
+    private function getPropertiesOfClassIncludingParents($instance)
+    {
+        $properties = [];
+        try {
+            $reflection = new \ReflectionClass($instance);
+            do {
+                /* @var $p \ReflectionProperty */
+                foreach ($reflection->getProperties() as $property) {
+                    $property->setAccessible(true);
+                    $properties[$property->getName()] = $property->getValue($instance);
+                }
+            } while ($reflection = $reflection->getParentClass());
+        } catch (\ReflectionException $e) { }
+
+        return $properties;
     }
 }
