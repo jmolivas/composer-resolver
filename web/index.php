@@ -23,6 +23,8 @@ $app->post('/jobs', 'jobs.controller:postAction')
     ->bind('jobs_post');
 $app->get('/jobs/{jobId}', 'jobs.controller:getAction')
     ->bind('jobs_get');
+$app->delete('/jobs/{jobId}', 'jobs.controller:deleteAction')
+    ->bind('jobs_delete');
 $app->get('/jobs/{jobId}/composerLock', 'jobs.controller:getComposerLockAction')
     ->bind('jobs_get_composer_lock');
 $app->get('/jobs/{jobId}/composerOutput', 'jobs.controller:getComposerOutputAction')

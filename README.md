@@ -148,6 +148,9 @@ Content-Type: application/json; charset=UTF-8
 
 Also see the "Configure" section on how this is being calculated.
 
+To delete a job, simply run a `DELETE` request to
+`/jobs/5241c3603853e648127910e71ea235b7`.
+
 ## Update with different options
 
 As we all know, `composer update` does provide different arguments and

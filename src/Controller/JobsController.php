@@ -211,6 +211,22 @@ class JobsController
     }
 
     /**
+     * Stops a given job id.
+     *
+     * @param string $jobId
+     *
+     * @return Response
+     */
+    public function deleteAction(string $jobId) : Response
+    {
+        // FIXME: Try to find a way to exit the running process
+
+        $this->redis->lrem($this->queueKey, 0, $jobId);
+
+        return new Response('Job stopped and deleted.', 200);
+    }
+
+    /**
      * Returns the composer.lock for a given job id.
      *
      * @param string $jobId

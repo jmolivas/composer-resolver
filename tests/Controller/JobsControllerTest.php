@@ -340,6 +340,43 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expectedContent, json_decode($response->getContent(), true));
     }
 
+    public function testDeleteAction()
+    {
+        $jobId = 'foobar.id';
+
+        $redis = $this->createMock(Client::class);
+        $redis->expects($this->once())
+            ->method('__call')
+            ->with(
+                $this->equalTo('lrem'),
+                $this->callback(function($args) use ($jobId) {
+                    try {
+                        $this->assertSame(0, $args[1]);
+                        $this->assertSame($jobId, $args[2]);
+                        return true;
+                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                        return false;
+                    }
+                })
+            )
+        ;
+
+        $controller = new JobsController(
+            $redis,
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $response = $controller->deleteAction($jobId);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertEquals('Job stopped and deleted.', $response->getContent());
+    }
+
     public function testGetComposerLockActionWithInvalidJobId()
     {
         $redis = $this->getRedis(1);
