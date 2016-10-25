@@ -101,12 +101,12 @@ class Resolver
         $predis = $this->predis;
         $job    = $predis->blpop($this->queueKey, $pollingFrequency);
 
-        if (null !== $job && null !== ($jobData = $predis->get('jobs:' . $job[1]))) {
+        if (null !== $job && null !== ($jobData = $predis->get($this->getJobKey($job[1])))) {
             $job = Job::createFromArray(json_decode($jobData, true));
 
             // Set status to processing
             $job->setStatus(Job::STATUS_PROCESSING);
-            $predis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
+            $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
 
             // Process
             try {
@@ -120,8 +120,7 @@ class Resolver
             }
 
             // Finished
-            $predis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
-
+            $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
             $this->logger->info('Finished working on job ' . $job->getId());
         }
     }
@@ -266,7 +265,7 @@ class Resolver
         $output = new JobOutput($verbosity);
         $output->setJob($job);
         $output->setOnUpdate(function(Job $job) use ($predis, $ttl) {
-            $predis->setex('jobs:' . $job->getId(), $ttl, json_encode($job));
+            $predis->setex($this->getJobKey($job->getId()), $ttl, json_encode($job));
         });
 
         if (isset($options['ansi']) && true == $options['ansi']) {
@@ -284,5 +283,17 @@ class Resolver
         }
 
         return $io;
+    }
+
+    /**
+     * Get the job key.
+     *
+     * @param string $jobId
+     *
+     * @return string
+     */
+    private function getJobKey(string $jobId) : string
+    {
+        return $this->queueKey . ':jobs:' . $jobId;
     }
 }

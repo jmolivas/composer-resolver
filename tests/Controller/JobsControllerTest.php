@@ -151,6 +151,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testPostActionWithValidPayload()
     {
+        $queueKey = 'foobar';
         $processingJob = null;
         $logger = $this->getLogger();
         $logger->expects($this->once())
@@ -170,9 +171,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
                 // setex call
                 [
                     $this->equalTo('setex'),
-                    $this->callback(function($args) {
+                    $this->callback(function($args) use ($queueKey) {
                         try {
-                            $this->assertStringStartsWith('jobs:', $args[0]);
+                            $this->assertStringStartsWith($queueKey . ':jobs:', $args[0]);
                             $this->assertInternalType('int', $args[1]);
                             $this->assertJson($args[2]);
                             return true;
@@ -204,7 +205,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $redis,
             $urlGenerator,
             $logger,
-            'key',
+            $queueKey,
             600,
             10,
             1
@@ -302,14 +303,15 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetAction(array $jobData, $expectedStatusCode, array $expectedContent)
     {
+        $queueKey = 'foobar';
         $redis = $this->createMock(Client::class);
         $redis->expects($this->any())
             ->method('__call')
             ->with(
                 $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData) {
+                $this->callback(function($args) use ($jobData, $queueKey) {
                     try {
-                        $this->assertSame('jobs:' . $jobData['id'], $args[0]);
+                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
                         return true;
                     } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
                         return false;
@@ -328,7 +330,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $redis,
             $urlGenerator,
             $this->getLogger(),
-            'key',
+            $queueKey,
             600,
             10,
             1
@@ -343,29 +345,43 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testDeleteAction()
     {
         $jobId = 'foobar.id';
+        $queueKey = 'foobar';
 
         $redis = $this->createMock(Client::class);
-        $redis->expects($this->once())
+        $redis->expects($this->exactly(2))
             ->method('__call')
-            ->with(
-                $this->equalTo('lrem'),
-                $this->callback(function($args) use ($jobId) {
-                    try {
-                        $this->assertSame(0, $args[1]);
-                        $this->assertSame($jobId, $args[2]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            )
+            ->withConsecutive(
+                [
+                    $this->equalTo('lrem'),
+                    $this->callback(function($args) use ($jobId) {
+                        try {
+                            $this->assertSame(0, $args[1]);
+                            $this->assertSame($jobId, $args[2]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ],
+                [
+                    $this->equalTo('del'),
+                    $this->callback(function($args) use ($jobId, $queueKey) {
+                        try {
+                            $this->assertSame($queueKey . ':jobs:' . $jobId, $args[0]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ]
+            );
         ;
 
         $controller = new JobsController(
             $redis,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
+            $queueKey,
             600,
             10,
             1
@@ -404,6 +420,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetComposerLockAction()
     {
+        $queueKey = 'whatever';
         $jobData = [
             'id' => 'uniq.id',
             'status' => Job::STATUS_FINISHED,
@@ -416,9 +433,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             ->method('__call')
             ->with(
                 $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData) {
+                $this->callback(function($args) use ($jobData, $queueKey) {
                     try {
-                        $this->assertSame('jobs:' . $jobData['id'], $args[0]);
+                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
                         return true;
                     } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
                         return false;
@@ -432,7 +449,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $redis,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
+            $queueKey,
             600,
             10,
             1
@@ -471,6 +488,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetComposerOutputAction()
     {
+        $queueKey = 'whatever';
         $output = 'This is a nice' . PHP_EOL . 'command line output.';
         $jobData = [
             'id' => 'uniq.id',
@@ -485,9 +503,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             ->method('__call')
             ->with(
                 $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData) {
+                $this->callback(function($args) use ($jobData, $queueKey) {
                     try {
-                        $this->assertSame('jobs:' . $jobData['id'], $args[0]);
+                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
                         return true;
                     } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
                         return false;
@@ -501,7 +519,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $redis,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
+            $queueKey,
             600,
             10,
             1

@@ -295,9 +295,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             ->method('__call')
             ->with(
                 $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData) {
+                $this->callback(function($args) use ($jobData, $queueKey) {
                     try {
-                        $this->assertSame('jobs:' . $jobData['id'], $args[0]);
+                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
                         return true;
                     } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
                         return false;

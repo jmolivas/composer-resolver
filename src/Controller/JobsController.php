@@ -164,7 +164,7 @@ class JobsController
             'job' => $job
         ]);
 
-        $this->redis->setex('jobs:' . $job->getId(), $this->ttl, json_encode($job));
+        $this->redis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
         $this->redis->rpush($this->queueKey, [$job->getId()]);
 
         return new JsonResponse(
@@ -271,7 +271,7 @@ class JobsController
      */
     private function fetchJob(string $jobId)
     {
-        $jobData = $this->redis->get('jobs:' . $jobId);
+        $jobData = $this->redis->get($this->getJobKey($jobId));
 
         if (null === $jobData) {
 
@@ -385,5 +385,17 @@ class JobsController
             'jobId'   => $job->getId(),
             'status'  => $job->getStatus()
         ];
+    }
+
+    /**
+     * Get the job key.
+     *
+     * @param string $jobId
+     *
+     * @return string
+     */
+    private function getJobKey(string $jobId) : string
+    {
+        return $this->queueKey . ':jobs:' . $jobId;
     }
 }
