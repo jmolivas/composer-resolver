@@ -7,9 +7,6 @@ services:
             context: ./../
             dockerfile: ./docker/web/Dockerfile
         image: toflar/composer-resolver-web:latest
-        labels:
-            traefik.port: '433'
-
 
     # API: PHP 7.* with FPM SAPI on Alpine Linux Container
     php-fpm:
@@ -31,15 +28,3 @@ services:
         command: php /var/www/composer-resolver/bin/worker.php
         environment:
             - COMPOSER_CACHE_DIR=/var/composer-cache
-
-    # Traefik
-    traefik:
-        image: traefik:camembert
-        ports:
-            - '80:80'
-            - '8080:8080'
-            - '433:433'
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-            - traefik-ssl-certificates:/etc/traefik/acme
-        command: --docker --docker.swarmmode --docker.domain=traefik --docker.watch --acme --acme.email=yanick.witschi@terminal42.ch

@@ -1,7 +1,7 @@
 {
   "Services": {
     "php-fpm": {
-      "Image": "toflar/composer-resolver-php-fpm@sha256:99d99124b4a8a59d87a2b2cd1842e022238e765d06e78a58c57bca00847dc2b6", 
+      "Image": "toflar/composer-resolver-php-fpm@sha256:00569380ee273a81b7ec8b66a6c1f2082bdcc1335bb558814701b1ec79e8f192", 
       "Networks": [
         "default"
       ]
@@ -12,39 +12,8 @@
         "default"
       ]
     }, 
-    "traefik": {
-      "Args": [
-        "--docker", 
-        "--docker.swarmmode", 
-        "--docker.domain=traefik", 
-        "--docker.watch", 
-        "--acme", 
-        "--acme.email=yanick.witschi@terminal42.ch"
-      ], 
-      "Image": "traefik@sha256:9cf3675a141ec33e8e307f22e15d1b93e2436707f400a7d75e53d71260e6ea6a", 
-      "Networks": [
-        "default"
-      ], 
-      "Ports": [
-        {
-          "Port": 80, 
-          "Protocol": "tcp"
-        }, 
-        {
-          "Port": 8080, 
-          "Protocol": "tcp"
-        }, 
-        {
-          "Port": 433, 
-          "Protocol": "tcp"
-        }
-      ]
-    }, 
     "web": {
-      "Image": "toflar/composer-resolver-web@sha256:d003cbf3a9020a3727082e6e8bb0a84d759e2db59c881c5d0f6469bc63a9d9fc", 
-      "Labels": {
-        "traefik.port": "433"
-      }, 
+      "Image": "toflar/composer-resolver-web@sha256:98ff6b86b0dbc5d7459a57730789a136e10a95b1b4912ed83950f7b2a744f6bf", 
       "Networks": [
         "default"
       ]
@@ -57,7 +26,7 @@
       "Env": [
         "COMPOSER_CACHE_DIR=/var/composer-cache"
       ], 
-      "Image": "toflar/composer-resolver-worker@sha256:8b86e23ceae46a3bdaa98d04277cc5b7b827e659b595a64646422d2f51f07e05", 
+      "Image": "toflar/composer-resolver-worker@sha256:4a68a2abb49a592b49359bf687c24923975e3ddb47e604b41c67b1ccfc499244", 
       "Networks": [
         "default"
       ]
