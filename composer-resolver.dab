@@ -3,7 +3,7 @@
     "php-fpm": {
       "Image": "toflar/composer-resolver-php-fpm@sha256:00569380ee273a81b7ec8b66a6c1f2082bdcc1335bb558814701b1ec79e8f192", 
       "Networks": [
-        "default"
+        "composer-resolver-reverse-proxy"
       ]
     }, 
     "redis": {
@@ -15,7 +15,7 @@
     "web": {
       "Image": "toflar/composer-resolver-web@sha256:98ff6b86b0dbc5d7459a57730789a136e10a95b1b4912ed83950f7b2a744f6bf", 
       "Networks": [
-        "default"
+        "composer-resolver-reverse-proxy"
       ]
     }, 
     "worker": {
@@ -28,7 +28,7 @@
       ], 
       "Image": "toflar/composer-resolver-worker@sha256:4a68a2abb49a592b49359bf687c24923975e3ddb47e604b41c67b1ccfc499244", 
       "Networks": [
-        "default"
+        "composer-resolver-reverse-proxy"
       ]
     }
   }, 
