@@ -34,4 +34,6 @@ COPY ./app.php /var/www/composer-resolver/app.php
 # Copy php.ini
 COPY ./docker/worker/php.ini /etc/php7/conf.d/composer-resolver.ini
 
+ENV COMPOSER_CACHE_DIR=/var/composer-cache
+
 CMD php /var/www/composer-resolver/bin/worker.php

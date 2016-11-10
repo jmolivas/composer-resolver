@@ -19,14 +19,7 @@
       ]
     }, 
     "worker": {
-      "Args": [
-        "php", 
-        "/var/www/composer-resolver/bin/worker.php"
-      ], 
-      "Env": [
-        "COMPOSER_CACHE_DIR=/var/composer-cache"
-      ], 
-      "Image": "toflar/composer-resolver-worker@sha256:4a68a2abb49a592b49359bf687c24923975e3ddb47e604b41c67b1ccfc499244", 
+      "Image": "toflar/composer-resolver-worker@sha256:b86c7dfd734830111fdfd228a04bf63fb37b05636075e1b99bce49db663a78fc", 
       "Networks": [
         "default"
       ]
