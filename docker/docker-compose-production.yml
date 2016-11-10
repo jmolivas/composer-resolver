@@ -7,8 +7,6 @@ services:
             context: ./../
             dockerfile: ./docker/web/Dockerfile
         image: toflar/composer-resolver-web:latest
-        networks:
-            - composer-resolver-reverse-proxy
 
     # API: PHP 7.* with FPM SAPI on Alpine Linux Container
     php-fpm:
@@ -16,8 +14,6 @@ services:
             context: ./../
             dockerfile: ./docker/php-fpm/Dockerfile
         image: toflar/composer-resolver-php-fpm:latest
-        networks:
-            - composer-resolver-reverse-proxy
 
     # API & Worker communication: Redis
     redis:
@@ -32,10 +28,4 @@ services:
         command: php /var/www/composer-resolver/bin/worker.php
         environment:
             - COMPOSER_CACHE_DIR=/var/composer-cache
-        networks:
-            - composer-resolver-reverse-proxy
 
-networks:
-  composer-resolver-reverse-proxy:
-    external:
-      name: composer-resolver-reverse-proxy

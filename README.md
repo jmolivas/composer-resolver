@@ -229,7 +229,10 @@ Now, we have to link the `composer-cache` volume to our worker service:
 $ docker service update --mount-add type=volume,source=composer-cache,destination=/var/composer-cache composer-resolver_worker
 ```
 
-That's it. Check out the configuration options that are following now.
+That's it, your Composer resolver swarm is running. If and how you make
+it accessible from the outside world, however, depends on your integration
+and I'll leave that to you.
+Check out the configuration options that are following now.
 
 ### Configure
 
