@@ -20,18 +20,19 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
     ],
 ]);
 
-$app['redis.jobs.queueKey']               = 'env(COMPOSER-RESOLVER-JOBS-QUEUE-KEY)';
-$app['redis.jobs.workerPollingFrequency'] = 'env(COMPOSER-RESOLVER-POLLING-FREQUENCY)';
-$app['redis.jobs.ttl']                    = 'env(COMPOSER-RESOLVER-JOBS-TTL)';
-$app['redis.jobs.atpj']                   = 'env(COMPOSER-RESOLVER-JOBS-ATPJ)';
-$app['redis.jobs.workers']                = 'env(COMPOSER-RESOLVER-WORKERS)';
+$app['redis.jobs.queueKey']               = 'env(COMPOSER_RESOLVER_JOBS_QUEUE_KEY)';
+$app['redis.jobs.workerPollingFrequency'] = 'env(COMPOSER_RESOLVER_POLLING_FREQUENCY)';
+$app['redis.jobs.ttl']                    = 'env(COMPOSER_RESOLVER_JOBS_TTL)';
+$app['redis.jobs.atpj']                   = 'env(COMPOSER_RESOLVER_JOBS_ATPJ)';
+$app['redis.jobs.workers']                = 'env(COMPOSER_RESOLVER_WORKERS)';
+
 
 // Define defaults if env vars are not set
-$app['env(COMPOSER-RESOLVER-JOBS-QUEUE-KEY)']    = 'jobs-queue';
-$app['env(COMPOSER-RESOLVER-POLLING-FREQUENCY)'] = 5;
-$app['env(COMPOSER-RESOLVER-JOBS-TTL)']          = 600;
-$app['env(COMPOSER-RESOLVER-JOBS-ATPJ)']         = 30;
-$app['env(COMPOSER-RESOLVER-WORKERS)']           = 1;
+$app['env(COMPOSER_RESOLVER_JOBS_QUEUE_KEY)']    = 'jobs_queue';
+$app['env(COMPOSER_RESOLVER_POLLING_FREQUENCY)'] = 5;
+$app['env(COMPOSER_RESOLVER_JOBS_TTL)']          = 600;
+$app['env(COMPOSER_RESOLVER_JOBS_ATPJ)']         = 30;
+$app['env(COMPOSER_RESOLVER_WORKERS)']           = 1;
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(

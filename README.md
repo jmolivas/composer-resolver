@@ -239,11 +239,11 @@ Check out the configuration options that are following now.
 There are environment variables to configure the way the worker is
 working (pun intended):
 
-* `COMPOSER-RESOLVER-JOBS-QUEUE-KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
-* `COMPOSER-RESOLVER-POLLING-FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `5`)
-* `COMPOSER-RESOLVER-JOBS-TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
-* `COMPOSER-RESOLVER-JOBS-ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
-* `COMPOSER-RESOLVER-WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
+* `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
+* `COMPOSER_RESOLVER_POLLING_FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `5`)
+* `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
+* `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
+* `COMPOSER_RESOLVER_WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
 
 ### Manage / Scale
 
@@ -259,7 +259,7 @@ the number of workers so that the information about the waiting time is
 more accurate:
 
 ```
-$ docker service update --env-add COMPOSER-RESOLVER-WORKERS=40 composer-resolver_web
+$ docker service update --env-add COMPOSER_RESOLVER_WORKERS=40 composer-resolver_web
 ```
 
 ### Configure swap
