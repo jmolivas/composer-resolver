@@ -4,6 +4,19 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Silex\Application();
 
+// Env closure
+$getEnvClosure = function ($key, $default = null) {
+    return function() use ($key, $default) {
+        $envValue = getenv($key);
+
+        if (false !== $envValue) {
+            return $envValue;
+        }
+
+        return $default;
+    };
+};
+
 // Console
 $app->register(new Knp\Provider\ConsoleServiceProvider(), array(
     'console.name'              => 'Composer Resolver Console',
@@ -20,19 +33,11 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
     ],
 ]);
 
-$app['redis.jobs.queueKey']               = 'env(COMPOSER_RESOLVER_JOBS_QUEUE_KEY)';
-$app['redis.jobs.workerPollingFrequency'] = 'env(COMPOSER_RESOLVER_POLLING_FREQUENCY)';
-$app['redis.jobs.ttl']                    = 'env(COMPOSER_RESOLVER_JOBS_TTL)';
-$app['redis.jobs.atpj']                   = 'env(COMPOSER_RESOLVER_JOBS_ATPJ)';
-$app['redis.jobs.workers']                = 'env(COMPOSER_RESOLVER_WORKERS)';
-
-
-// Define defaults if env vars are not set
-$app['env(COMPOSER_RESOLVER_JOBS_QUEUE_KEY)']    = 'jobs_queue';
-$app['env(COMPOSER_RESOLVER_POLLING_FREQUENCY)'] = 5;
-$app['env(COMPOSER_RESOLVER_JOBS_TTL)']          = 600;
-$app['env(COMPOSER_RESOLVER_JOBS_ATPJ)']         = 30;
-$app['env(COMPOSER_RESOLVER_WORKERS)']           = 1;
+$app['redis.jobs.queueKey']               = $getEnvClosure('COMPOSER_RESOLVER_JOBS_QUEUE_KEY', 'jobs_queue');
+$app['redis.jobs.workerPollingFrequency'] = $getEnvClosure('COMPOSER_RESOLVER_POLLING_FREQUENCY', 5);
+$app['redis.jobs.ttl']                    = $getEnvClosure('COMPOSER_RESOLVER_JOBS_TTL', 600);
+$app['redis.jobs.atpj']                   = $getEnvClosure('COMPOSER_RESOLVER_JOBS_ATPJ', 30);
+$app['redis.jobs.workers']                = $getEnvClosure('COMPOSER_RESOLVER_WORKERS', 1);
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(
