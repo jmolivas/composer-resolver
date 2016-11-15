@@ -21,7 +21,7 @@ class Application extends \Silex\Application
         return function () use ($key, $default, $type) {
             $envValue = getenv($key);
 
-            if (false !== $envValue || '' === $envValue) {
+            if (false !== $envValue && '' !== $envValue) {
                 settype($envValue, $type);
                 return $envValue;
             }
