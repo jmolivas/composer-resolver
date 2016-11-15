@@ -1,7 +1,7 @@
 {
   "Services": {
     "php-fpm": {
-      "Image": "toflar/composer-resolver-php-fpm@sha256:9d50c3e3dab055802cefd893c70cb55012f659de20dd059a561a218984b0a53f", 
+      "Image": "toflar/composer-resolver-php-fpm@sha256:f3b502cc8a64873952e68e3722c265d488595625ee1c4b45e5f2d0e68b18092c", 
       "Networks": [
         "default"
       ]
@@ -13,13 +13,13 @@
       ]
     }, 
     "web": {
-      "Image": "toflar/composer-resolver-web@sha256:8ff25e82fca4568f55a11658d294a4f0ebd15a252b4782721d6adc4034a99df6", 
+      "Image": "toflar/composer-resolver-web@sha256:4524efa5cc4a87f14310adcf89d6baceba931affd8ff5cb9ad8c519fd5748281", 
       "Networks": [
         "default"
       ]
     }, 
     "worker": {
-      "Image": "toflar/composer-resolver-worker@sha256:f9a7823b2865b35c3697600a863761e1383d6d89c12b34cf180175347bbe7e1a", 
+      "Image": "toflar/composer-resolver-worker@sha256:889727bb0536bd48304d3385c0c5341cfb3b65239c584ee6c63714f6a0bb84ff", 
       "Networks": [
         "default"
       ]
