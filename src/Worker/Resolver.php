@@ -166,6 +166,8 @@ class Resolver
             $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
         }
 
+        $job->setComposerOutput($job->getComposerOutput() . PHP_EOL . 'Finished Composer Cloud resolving.');
+
         $this->logger->debug('Resolved job.', [
             'job'       => $job,
             'installer' => $installer,
@@ -199,6 +201,8 @@ class Resolver
             ->setWriteLock(true) // Still write the lock file
             ->setVerbose(true) // Always verbose for composer. Verbosity is managed on the JobIO
             ->setDevMode(true) // Default is true, use --no-dev to disable
+            ->setDumpAutoloader(false)
+            ->setDisableImplicitOperations()
         ;
 
         // Job specific options
