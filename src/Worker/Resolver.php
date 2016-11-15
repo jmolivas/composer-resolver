@@ -197,7 +197,7 @@ class Resolver
         // General settings
         $installer = Installer::create($io, $composer)
             ->setUpdate(true) // Update
-            ->setDryRun(true) // Dry run (= no autoload dump, no scripts)
+            ->setDryRun(false) // Disable dry run
             ->setWriteLock(true) // Still write the lock file
             ->setVerbose(true) // Always verbose for composer. Verbosity is managed on the JobIO
             ->setDevMode(true) // Default is true, use --no-dev to disable
