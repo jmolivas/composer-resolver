@@ -348,32 +348,19 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $queueKey = 'foobar';
 
         $redis = $this->createMock(Client::class);
-        $redis->expects($this->exactly(2))
+        $redis->expects($this->exactly(1))
             ->method('__call')
-            ->withConsecutive(
-                [
-                    $this->equalTo('lrem'),
-                    $this->callback(function($args) use ($jobId) {
-                        try {
-                            $this->assertSame(0, $args[1]);
-                            $this->assertSame($jobId, $args[2]);
-                            return true;
-                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                            return false;
-                        }
-                    })
-                ],
-                [
-                    $this->equalTo('del'),
-                    $this->callback(function($args) use ($jobId, $queueKey) {
-                        try {
-                            $this->assertSame($queueKey . ':jobs:' . $jobId, $args[0]);
-                            return true;
-                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                            return false;
-                        }
-                    })
-                ]
+            ->with(
+                $this->equalTo('lrem'),
+                $this->callback(function($args) use ($jobId) {
+                    try {
+                        $this->assertSame(0, $args[1]);
+                        $this->assertSame($jobId, $args[2]);
+                        return true;
+                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                        return false;
+                    }
+                })
             );
         ;
 
