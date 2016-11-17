@@ -1,5 +1,8 @@
 # Composer Resolver
 
+[![](https://img.shields.io/travis/Toflar/composer-resolver/master.svg?style=flat-square)](https://travis-ci.org/Toflar/composer-resolver/)
+[![](https://img.shields.io/coveralls/Toflar/composer-resolver/master.svg?style=flat-square)](https://coveralls.io/github/Toflar/composer-resolver)
+
 Composer Resolver is a simple, dockerized application that provides a
 very simple API that accepts a `composer.json` and returns a job id
 with which you can later fetch the resulting `composer.lock` file.
