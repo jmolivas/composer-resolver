@@ -181,6 +181,35 @@ of what you can use (you can also use the aliases such as `-vvv` for
 * profile
 * verbose
 
+The Composer Resolver will validate for a `{"config": {"platform": {}}`
+definition in the `composer.json` to be present, as this is a requirement.
+Otherwise the Composer Resolver would always resolve with it's own available
+platform which is never what you want to have.
+But you can do even more. You can tell it, which packages you already
+have installed and thus should be considered for the dependency resolving
+process but not make it into the `composer.lock` (similar as the platform
+dependencies) by adding it to the `extra` section of your `composer.json`
+like this:
+
+```json
+{
+     "name": "local/website",
+     "description": "A local website project",
+     "type": "project"
+     "require": {
+         "stuff/i-need": "^1.0"
+     },
+     "extra": {
+         "composer-resolver": {
+              "installed-repository": {
+                  "stuff/i-have": "1.0.18"
+              }
+         }
+     }
+}
+
+```
+
 
 ## Does it just run composer update?
 

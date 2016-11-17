@@ -4,6 +4,9 @@ namespace Toflar\ComposerResolver\Worker;
 
 use Composer\Factory;
 use Composer\Installer;
+use Composer\Package\Package;
+use Composer\Repository\ArrayRepository;
+use Composer\Semver\VersionParser;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -204,6 +207,37 @@ class Resolver
             ->setDumpAutoloader(false)
             ->setDisableImplicitOperations()
         ;
+
+        // Check if additional installed packages are provided
+        $extra = $composer->getPackage()->getExtra();
+        $extra = array_key_exists('composer-resolver', $extra) ? $extra['composer-resolver'] : null;
+
+        if (null !== $extra) {
+            if (isset($extra['installed-repository'])) {
+                $additionalInstalledRepo = new ArrayRepository();
+                $versionParser = new VersionParser();
+
+                foreach ($extra['installed-repository'] as $package => $version) {
+
+                    try {
+                        $constraint = $versionParser->parseConstraints($version);
+                        $additionalInstalledRepo->addPackage(
+                            new Package(
+                                $package,
+                                $version,
+                                $constraint->getPrettyString()
+                            )
+                        );
+                    } catch (\Exception $e) {
+                        // Ignore silently and continue with other packages
+                        // This should not happen anyway, validate the data
+                        // before the job is even added to the queue
+                    }
+                }
+
+                $installer->setAdditionalInstalledRepository($additionalInstalledRepo);
+            }
+        }
 
         // Job specific options
         $options = $job->getComposerOptions();

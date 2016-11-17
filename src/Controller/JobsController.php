@@ -2,6 +2,7 @@
 
 namespace Toflar\ComposerResolver\Controller;
 
+use Composer\Semver\VersionParser;
 use JsonSchema\Validator;
 use Predis\Client;
 use Psr\Log\LoggerInterface;
@@ -137,6 +138,13 @@ class JobsController
         if (!$this->validatePlatformConfig($composerJson)) {
             return new Response(
                 'Your composer.json must provide a platform configuration (see https://getcomposer.org/doc/06-config.md#platform). Otherwise, you will not get the correct dependencies for your specific platform needs.',
+                400
+            );
+        }
+
+        if (!$this->validateExtras($composerJson)) {
+            return new Response(
+                'Your composer.json does not provide a valid configuration for the extras definition for the key "composer-resolver".',
                 400
             );
         }
@@ -325,6 +333,44 @@ class JobsController
         if (!isset($composerJsonData['config']['platform']) || !is_array($composerJsonData['config']['platform'])) {
 
             return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * You can provide additional data for the composer resolver via the extra
+     * section of the composer.json. This has to be valid though.
+     *
+     * @param string $composerJson
+     *
+     * @return bool
+     */
+    private function validateExtras(string $composerJson) : bool
+    {
+        $composerJsonData   = json_decode($composerJson, true);
+
+        if (!isset($composerJsonData['extra'])
+            || !isset($composerJsonData['extra']['composer-resolver'])
+        ) {
+
+            return true;
+        }
+
+        $extra = $composerJsonData['extra']['composer-resolver'];
+
+        // Validate "installed-repository"
+        if (isset($extra['installed-repository'])) {
+            $versionParser = new VersionParser();
+
+            foreach ((array) $extra['installed-repository'] as $package => $version) {
+                try {
+                    $versionParser->parseConstraints($version);
+                } catch (\Exception $e) {
+
+                    return false;
+                }
+            }
         }
 
         return true;

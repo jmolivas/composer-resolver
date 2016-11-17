@@ -94,6 +94,42 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(count($json['errors']) > 0);
     }
 
+    public function testPostActionWithInvalidExtra()
+    {
+        $controller = new JobsController(
+            $this->getRedis(1),
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1
+        );
+
+        $composerJson = [
+            'name' => 'whatever',
+            'description' => 'whatever',
+            'config' => [
+                'platform' => [
+                    'php' => '7.0.11'
+                ],
+            ],
+            'extra' => [
+                'composer-resolver' => [
+                    'installed-repository' => [
+                        'i-am-so-wrong' => 'I am wrong'
+                    ]
+                ]
+            ]
+        ];
+
+        $request = new Request([], [], [], [], [], [], json_encode($composerJson));
+        $response = $controller->postAction($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('Your composer.json does not provide a valid configuration for the extras definition for the key "composer-resolver".', $response->getContent());
+    }
+
     public function testPostActionWithNoPlatformConfigProvided()
     {
         $controller = new JobsController(
@@ -236,6 +272,14 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
                     'type' => 'artifact',
                     'url' => './repos/artifact'
                 ],
+            ],
+            // Check for extra
+            'extra' => [
+                'composer-resolver' => [
+                    'installed-repository' => [
+                        'my/package' => '1.0.0'
+                    ]
+                ]
             ]
         ];
 
