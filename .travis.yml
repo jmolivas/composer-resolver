@@ -6,11 +6,6 @@ php:
 
 sudo: false
 
-matrix:
-  include:
-    - php: 7.1
-      env: COMPOSER_FLAGS='--prefer-lowest --prefer-stable'
-
 before_script:
   - composer selfupdate
   - travis_wait composer update $COMPOSER_FLAGS --no-interaction

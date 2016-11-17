@@ -299,7 +299,9 @@ $ docker service update --env-add COMPOSER_RESOLVER_WORKERS=40 composer-resolver
 Composer requires a lot of RAM which is the initial purpose of this project.
 As you'll scale the workers, it will very likely happen that your available
 memory is not sufficient at times which why you have to monitor the resolver
-closely. Morerover, you should make sure you configure enough swap memory.
+closely. Moreover, you should make sure you configure enough swap memory.
+Note that swap memory should be used carefully as it can cause HDDs to
+suffer from it.
 
 Note: These commands are here to illustrate how it's done on Ubuntu.
 
