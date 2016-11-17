@@ -251,32 +251,32 @@ class Resolver
 
         // Options: prefer-source
         if (isset($options['prefer-source'])) {
-            $installer->setPreferSource(true);
+            $installer->setPreferSource($options['prefer-source']);
         }
 
         // Options: prefer-dist
         if (isset($options['prefer-dist'])) {
-            $installer->setPreferDist(true);
+            $installer->setPreferDist($options['prefer-dist']);
         }
 
         // Options: no-dev
-        if (isset($options['no-dev'])) {
+        if (isset($options['no-dev']) && true === $options['no-dev']) {
             $installer->setDevMode(false);
         }
 
         // Options: no-suggest
-        if (isset($options['no-suggest'])) {
+        if (isset($options['no-suggest']) && true === $options['no-suggest']) {
             $installer->setSkipSuggest(true);
         }
 
         // Options: prefer-stable
         if (isset($options['prefer-stable'])) {
-            $installer->setPreferStable(true);
+            $installer->setPreferStable($options['prefer-stable']);
         }
 
         // Options: prefer-lowest
         if (isset($options['prefer-lowest'])) {
-            $installer->setPreferLowest(true);
+            $installer->setPreferLowest($options['prefer-lowest']);
         }
 
         return $installer;

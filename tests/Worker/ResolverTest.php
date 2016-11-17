@@ -116,10 +116,15 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         /** @var Installer $installerRef */
         foreach ($this->getPropertiesOfClassIncludingParents($installerRef) as $k => $v) {
             if (in_array($k, array_keys($installerAssertionProperties))) {
-                $this->assertSame(
-                    $installerAssertionProperties[$k],
-                    $v
-                );
+
+                if ('not-null' == $installerAssertionProperties[$k]) {
+                    $this->assertNotNull($v);
+                } else {
+                    $this->assertSame(
+                        $installerAssertionProperties[$k],
+                        $v
+                    );
+                }
             }
 
             if ('io' === $k) {
@@ -155,13 +160,14 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                 ],
                 [
-                    'preferSource'      => false,
-                    'preferDist'        => false,
-                    'devMode'           => true,
-                    'skipSuggest'       => false,
-                    'preferStable'      => false,
-                    'preferLowest'      => false,
-                    'updateWhitelist'   => null
+                    'preferSource'                  => false,
+                    'preferDist'                    => false,
+                    'devMode'                       => true,
+                    'skipSuggest'                   => false,
+                    'preferStable'                  => false,
+                    'preferLowest'                  => false,
+                    'updateWhitelist'               => null,
+                    'additionalInstalledRepository' => null,
                 ],
                 null,
                 false
@@ -179,13 +185,14 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     ]
                 ],
                 [
-                    'preferSource'      => false,
-                    'preferDist'        => false,
-                    'devMode'           => true,
-                    'skipSuggest'       => false,
-                    'preferStable'      => false,
-                    'preferLowest'      => false,
-                    'updateWhitelist'   => ['package/one' => 0]
+                    'preferSource'                  => false,
+                    'preferDist'                    => false,
+                    'devMode'                       => true,
+                    'skipSuggest'                   => false,
+                    'preferStable'                  => false,
+                    'preferLowest'                  => false,
+                    'updateWhitelist'               => ['package/one' => 0],
+                    'additionalInstalledRepository' => null,
                 ],
                 null,
                 false
@@ -210,13 +217,14 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     ]
                 ],
                 [
-                    'preferSource'      => true,
-                    'preferDist'        => true,
-                    'devMode'           => false,
-                    'skipSuggest'       => true,
-                    'preferStable'      => true,
-                    'preferLowest'      => true,
-                    'updateWhitelist'   => ['package/one' => 0]
+                    'preferSource'                  => true,
+                    'preferDist'                    => true,
+                    'devMode'                       => false,
+                    'skipSuggest'                   => true,
+                    'preferStable'                  => true,
+                    'preferLowest'                  => true,
+                    'updateWhitelist'               => ['package/one' => 0],
+                    'additionalInstalledRepository' => null,
                 ],
                 null,
                 false
@@ -234,13 +242,14 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     ]
                 ],
                 [
-                    'preferSource'      => false,
-                    'preferDist'        => false,
-                    'devMode'           => true,
-                    'skipSuggest'       => false,
-                    'preferStable'      => false,
-                    'preferLowest'      => false,
-                    'updateWhitelist'   => null
+                    'preferSource'                  => false,
+                    'preferDist'                    => false,
+                    'devMode'                       => true,
+                    'skipSuggest'                   => false,
+                    'preferStable'                  => false,
+                    'preferLowest'                  => false,
+                    'updateWhitelist'               => null,
+                    'additionalInstalledRepository' => null,
                 ],
                 true,
                 true
@@ -257,13 +266,38 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                     ]
                 ],
                 [
-                    'preferSource'      => false,
-                    'preferDist'        => false,
-                    'devMode'           => true,
-                    'skipSuggest'       => false,
-                    'preferStable'      => false,
-                    'preferLowest'      => false,
-                    'updateWhitelist'   => null
+                    'preferSource'                  => false,
+                    'preferDist'                    => false,
+                    'devMode'                       => true,
+                    'skipSuggest'                   => false,
+                    'preferStable'                  => false,
+                    'preferLowest'                  => false,
+                    'updateWhitelist'               => null,
+                    'additionalInstalledRepository' => null,
+                ],
+                null,
+                false
+            ],
+            'Test additional repository' => [
+                [
+                    'id' => 'foobar.id',
+                    'status' => Job::STATUS_PROCESSING,
+                    'composerJson' => '{"name":"whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}},"extra":{"composer-resolver":{"installed-repository":{"my\/package":"1.0.0"}}}}',
+                    'composerOptions' => [
+                        'options' => [
+                            'no-ansi' => true,
+                        ]
+                    ]
+                ],
+                [
+                    'preferSource'                  => false,
+                    'preferDist'                    => false,
+                    'devMode'                       => true,
+                    'skipSuggest'                   => false,
+                    'preferStable'                  => false,
+                    'preferLowest'                  => false,
+                    'updateWhitelist'               => null,
+                    'additionalInstalledRepository' => 'not-null',
                 ],
                 null,
                 false
