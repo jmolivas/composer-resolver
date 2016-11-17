@@ -195,7 +195,7 @@ like this:
 {
      "name": "local/website",
      "description": "A local website project",
-     "type": "project"
+     "type": "project",
      "require": {
          "stuff/i-need": "^1.0"
      },
