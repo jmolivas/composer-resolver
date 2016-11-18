@@ -120,6 +120,9 @@ class Resolver
                     'file'  => $t->getFile(),
                     'trace' => $t->getTrace()
                 ]);
+
+                $job->setComposerOutput($job->getComposerOutput() . PHP_EOL . 'An error occured during resolving process.');
+                $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
             }
 
             // Finished
