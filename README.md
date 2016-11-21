@@ -246,14 +246,24 @@ $ docker volume create --name composer-cache
  
 Obviously you can create a volume of any kind of driver you prefer. Just
 make sure it is named `composer-cache` as this is the default settings
-for the bundle. You can of course just set a different name and adjust
-the environment variable `COMPOSER_CACHE_DIR` for your worker service.
+for the bundle which we'll create now. You can of course just set a
+different name and adjust the environment variable `COMPOSER_CACHE_DIR`
+for your worker service.
+
+Let's create the bundle:
+
+```
+$ docker-compose -f ./docker/docker-compose-production.yml bundle -o composer-resolver.dab
+```
 
 Now you can just deploy all the needed services like this:
 
 ```
 $ docker deploy composer-resolver
 ```
+
+Of course you don't have to use the DAB files, you can create the services
+manually if you like.
 
 Now, we have to link the `composer-cache` volume to our worker service:
 
@@ -345,5 +355,4 @@ Build:
 ```
 $ docker-compose -f ./docker/docker-compose-production.yml build
 $ docker-compose -f ./docker/docker-compose-production.yml push
-$ docker-compose -f ./docker/docker-compose-production.yml bundle -o composer-resolver.dab
 ```
