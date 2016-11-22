@@ -1,28 +1,10 @@
-FROM alpine:edge
+FROM php:7.0-cli
 
 MAINTAINER Yanick Witschi <yanick.witschi@terminal42.ch>
 
 # Install the packages we need
-RUN apk update
-
-RUN apk add --no-cache --repository "http://dl-cdn.alpinelinux.org/alpine/edge/testing" \
-    ca-certificates \
-    git \
-    mercurial \
-    openssh \
-    subversion \
-    php7 \
-    php7-zip \
-    php7-ctype \
-    php7-curl \
-    php7-iconv \
-    php7-json \
-    php7-openssl \
-    php7-phar \
-    php7-posix \
-    php7-opcache
-
-RUN mv /usr/bin/php7 /usr/bin/php
+RUN apt-get update
+RUN apt-get install -y git-all mercurial
 
 # Copy resolver files
 COPY ./bin /var/www/composer-resolver/bin
@@ -32,7 +14,7 @@ COPY ./web /var/www/composer-resolver/web
 COPY ./app.php /var/www/composer-resolver/app.php
 
 # Copy php.ini
-COPY ./docker/worker/php.ini /etc/php7/conf.d/composer-resolver.ini
+COPY ./docker/worker/php.ini /usr/local/etc/php/conf.d/composer-resolver.ini
 
 ENV COMPOSER_CACHE_DIR=/var/composer-cache
 
