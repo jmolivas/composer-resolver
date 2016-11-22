@@ -104,11 +104,7 @@ class Resolver
         $predis = $this->predis;
         $job    = $predis->blpop($this->queueKey, $pollingFrequency);
 
-        $this->logger->debug('Checking for new jobs on the queue.');
-
         if (null !== $job && null !== ($jobData = $predis->get($this->getJobKey($job[1])))) {
-
-            $this->logger->debug('Found job ' . $job->getId() . ' on the queue. Starting resolving now.');
 
             $job = Job::createFromArray(json_decode($jobData, true));
 
