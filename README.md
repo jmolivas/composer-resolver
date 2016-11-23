@@ -232,6 +232,16 @@ As the "Docker Stacks and Distributed Application Bundles" are still an
 experimental feature of Docker, make sure you're running the latest beta
 of Docker itself. Be prepared for changes!
 
+Note that the way workers work in this project is that they poll every
+n seconds and when they found a job, they run that job and then terminate
+themselves. This ensures we have no memory leaks and memory is freed after
+every run of every worker. The Docker 1.12+ swarm mode feature is perfect
+for that use case because if the worker container is terminated, Docker
+will take care and spawn a new one so you always have workers running.
+It might be tedious during development though that's why you can configure
+this behaviour using the `COMPOSER_RESOLVER_TERMINATE_AFTER_RUN` environment
+variable on the `worker` containers. See "Configure" for more details.
+
 ### Deploy
 
 [Create a swarm](https://docs.docker.com/engine/reference/commandline/swarm_init/) first.
@@ -278,14 +288,20 @@ Check out the configuration options that are following now.
 
 ### Configure
 
-There are environment variables to configure the way the worker is
-working (pun intended):
+There are environment variables to configure the way the resolver is
+working:
 
-* `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
-* `COMPOSER_RESOLVER_POLLING_FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `5`)
-* `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
-* `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
-* `COMPOSER_RESOLVER_WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
+* On the `web` container/service:
+    * `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
+    * `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
+    * `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
+    * `COMPOSER_RESOLVER_WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
+
+* On the `worker` container/service:
+    * `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
+    * `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
+    * `COMPOSER_RESOLVER_POLLING_FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `5`)
+    * `COMPOSER_RESOLVER_TERMINATE_AFTER_RUN` - defines whether the worker process is killed after run (default `1` aka `true`)
 
 ### Manage / Scale
 

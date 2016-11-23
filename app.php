@@ -18,6 +18,7 @@ $app['redis.jobs.workerPollingFrequency'] = $app->env('COMPOSER_RESOLVER_POLLING
 $app['redis.jobs.ttl']                    = $app->env('COMPOSER_RESOLVER_JOBS_TTL', 600, 'int');
 $app['redis.jobs.atpj']                   = $app->env('COMPOSER_RESOLVER_JOBS_ATPJ', 30, 'int');
 $app['redis.jobs.workers']                = $app->env('COMPOSER_RESOLVER_WORKERS', 1, 'int');
+$app['worker.terminate_after_run']        = $app->env('COMPOSER_RESOLVER_TERMINATE_AFTER_RUN', true, 'bool');
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(

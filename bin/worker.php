@@ -2,9 +2,11 @@
 
 $app = require_once __DIR__ . '/../app.php';
 
-while(true) {
+/** @var \Toflar\ComposerResolver\Worker\Resolver $resolver */
+$resolver =  $app['composer-resolver'];
 
-    /** @var \Toflar\ComposerResolver\Worker\Resolver $resolver */
-    $resolver =  $app['composer-resolver'];
-    $resolver->run($app['redis.jobs.workerPollingFrequency']);
+if (false === $app['worker.terminate_after_run']) {
+    $resolver->setTerminateAfterRun(false);
 }
+
+$resolver->run($app['redis.jobs.workerPollingFrequency']);

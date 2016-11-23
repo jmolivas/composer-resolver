@@ -61,6 +61,11 @@ class Resolver
     private $mockComposerLock = null;
 
     /**
+     * @var bool
+     */
+    private $terminateAfterRun = true;
+
+    /**
      * Resolver constructor.
      *
      * @param Client          $predis
@@ -80,18 +85,46 @@ class Resolver
 
     /**
      * @param int $mockRunResult
+     *
+     * @return Resolver
      */
     public function setMockRunResult(int $mockRunResult)
     {
         $this->mockRunResult = $mockRunResult;
+
+        return $this;
     }
 
     /**
      * @param string $mockComposerLock
+     *
+     * @return Resolver
      */
     public function setMockComposerLock(string $mockComposerLock)
     {
         $this->mockComposerLock = $mockComposerLock;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTerminateAfterRun()
+    {
+        return $this->terminateAfterRun;
+    }
+
+    /**
+     * @param bool $terminateAfterRun
+     *
+     * @return Resolver
+     */
+    public function setTerminateAfterRun(bool $terminateAfterRun)
+    {
+        $this->terminateAfterRun = $terminateAfterRun;
+
+        return $this;
     }
 
     /**
@@ -129,7 +162,19 @@ class Resolver
             // Finished
             $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
             $this->logger->info('Finished working on job ' . $job->getId());
+
+            if ($this->terminateAfterRun) {
+                $this->terminate();
+            }
         }
+    }
+
+    /**
+     * Terminates the process
+     */
+    public function terminate()
+    {
+        exit; // @codeCoverageIgnore
     }
 
     /**

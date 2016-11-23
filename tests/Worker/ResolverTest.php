@@ -24,6 +24,30 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Toflar\ComposerResolver\Worker\Resolver', $resolver);
     }
 
+    public function testTerminateAfterRun()
+    {
+        $queueKey = 'whatever';
+        $pollingFrequency = 5;
+        $jobData = [
+            'id' => 'foobar.id',
+            'status' => Job::STATUS_PROCESSING,
+            'composerJson' => '{very invalid stuff which will force an exception thrown}',
+        ];
+
+        $resolver = $this->getResolver(
+            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $logger = $this->createMock(Logger::class),
+            __DIR__,
+            $queueKey,
+            5,
+            true // this is the key for this test
+        );
+
+        $this->assertTrue($resolver->getTerminateAfterRun());
+
+        $resolver->run($pollingFrequency);
+    }
+
     public function testLogsOnExceptionDuringRun()
     {
         $queueKey = 'whatever';
@@ -45,7 +69,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
                 })
             );
 
-        $resolver = new Resolver(
+        $resolver = $this->getResolver(
             $this->getRedis($queueKey, $pollingFrequency, $jobData),
             $logger,
             __DIR__,
@@ -68,7 +92,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
         ];
 
-        $resolver = new Resolver(
+        $resolver = $this->getResolver(
             $this->getRedis($queueKey, $pollingFrequency, $jobData),
             $this->getLogger($installerRef, $jobRef),
             __DIR__,
@@ -97,7 +121,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $queueKey = 'whatever';
         $pollingFrequency = 5;
 
-        $resolver = new Resolver(
+        $resolver = $this->getResolver(
             $this->getRedis($queueKey, $pollingFrequency, $jobData),
             $this->getLogger($installerRef, $jobRef),
             __DIR__,
@@ -340,6 +364,25 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             )
             ->willReturn(json_encode($jobData))
         ;
+
+        return $mock;
+    }
+
+    /**
+     * @return Resolver
+     */
+    private function getResolver($redis, $logger, $jobsDir, $queueKey, $ttl, $shouldTerminate = false)
+    {
+        $mock = $this->getMockBuilder(Resolver::class)
+            ->setConstructorArgs([$redis, $logger, $jobsDir, $queueKey, $ttl])
+            ->setMethods(['terminate'])
+            ->getMock();
+
+        $mock->expects($shouldTerminate ? $this->once() : $this->never())
+            ->method('terminate');
+
+        /** @var Resolver $mock */
+        $mock->setTerminateAfterRun($shouldTerminate);
 
         return $mock;
     }
