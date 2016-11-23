@@ -174,7 +174,10 @@ class Resolver
      */
     public function terminate()
     {
-        exit; // @codeCoverageIgnore
+        // @codeCoverageIgnoreStart
+        $this->logger->info('Terminating worker process now.');
+        exit;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
