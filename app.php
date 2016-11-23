@@ -14,7 +14,7 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
 ]);
 
 $app['redis.jobs.queueKey']               = $app->env('COMPOSER_RESOLVER_JOBS_QUEUE_KEY', 'jobs_queue');
-$app['redis.jobs.workerPollingFrequency'] = $app->env('COMPOSER_RESOLVER_POLLING_FREQUENCY', 5, 'int');
+$app['redis.jobs.workerPollingFrequency'] = $app->env('COMPOSER_RESOLVER_POLLING_FREQUENCY', 1, 'int');
 $app['redis.jobs.ttl']                    = $app->env('COMPOSER_RESOLVER_JOBS_TTL', 600, 'int');
 $app['redis.jobs.atpj']                   = $app->env('COMPOSER_RESOLVER_JOBS_ATPJ', 30, 'int');
 $app['redis.jobs.workers']                = $app->env('COMPOSER_RESOLVER_WORKERS', 1, 'int');
