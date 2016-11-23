@@ -6,6 +6,7 @@ services:
         image: toflar/composer-resolver-web:latest
         volumes:
             - ./:/var/www/composer-resolver
+            # Cannot just mount nginx.conf as it is templated
         ports:
             - '32772:80'
         depends_on:
@@ -17,6 +18,7 @@ services:
         image: toflar/composer-resolver-php-fpm:latest
         volumes:
             - ./:/var/www/composer-resolver
+            - ./docker/php-fpm/php.ini:/etc/php/conf.d/composer-resolver.ini
 
     # API & Worker communication: Redis
     redis:
@@ -30,6 +32,7 @@ services:
         volumes:
             - composer-cache:/var/composer-cache
             - ./:/var/www/composer-resolver
+            - ./docker/worker/php.ini:/usr/local/etc/php/conf.d/composer-resolver.ini
         environment:
             - COMPOSER_CACHE_DIR=/var/composer-cache
             - COMPOSER_RESOLVER_POLLING_FREQUENCY=5
