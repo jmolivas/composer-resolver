@@ -9,4 +9,7 @@ if (false === $app['worker.terminate_after_run']) {
     $resolver->setTerminateAfterRun(false);
 }
 
-$resolver->run($app['redis.jobs.workerPollingFrequency']);
+while (true) {
+    $resolver->run($app['redis.jobs.workerPollingFrequency']);
+}
+
