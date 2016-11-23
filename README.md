@@ -294,7 +294,7 @@ working:
 * On the `web` container/service:
     * `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
     * `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
-    * `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `30`)
+    * `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `60`)
     * `COMPOSER_RESOLVER_WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
 
 * On the `worker` container/service:
