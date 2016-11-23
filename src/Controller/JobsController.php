@@ -227,8 +227,6 @@ class JobsController
      */
     public function deleteAction(string $jobId) : Response
     {
-        // FIXME: Try to find a way to exit the running process
-
         $this->redis->lrem($this->queueKey, 0, $jobId);
 
         return new Response('Job stopped and deleted.', 200);
