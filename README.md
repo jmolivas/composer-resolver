@@ -186,7 +186,7 @@ of what you can use (you can also use the aliases such as `-vvv` for
 
 The Composer Resolver will validate for a `{"config": {"platform": {}}`
 definition in the `composer.json` to be present, as this is a requirement.
-Otherwise the Composer Resolver would always resolve with it's own available
+Otherwise the Composer Resolver would always resolve with its own available
 platform which is never what you want to have.
 But you can do even more. You can tell it, which packages you already
 have installed and thus should be considered for the dependency resolving
@@ -220,7 +220,7 @@ No, `composer update` would also download the dependencies which is not
 the purpose of the Composer Resolver. The only task of the Composer
 Resolver is to resolve a given `composer.json` into a valid
 `composer.lock` file. Downloading the dependencies would make the tasks
-run longer for no reason. That's why Composer Resolver provides it's own
+run longer for no reason. That's why Composer Resolver provides its own
 installer that does something like a `composer update --dry-run` while
 still writing the `composer.lock` file.
 
