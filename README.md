@@ -69,6 +69,10 @@ status.
 
 Notice that the `status` is still `waiting`.
 
+If there are too many jobs on the queue already, you will get a
+`503 Service Unavailable` response. Also see the configuration setting
+`COMPOSER_RESOLVER_JOBS_MAX_FACTOR`.
+
 As soon as your job is being processed but has not yet finished, your
 response will look like this:
 
@@ -294,6 +298,7 @@ working:
 * On the `web` container/service:
     * `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
     * `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
+    * `COMPOSER_RESOLVER_JOBS_MAX_FACTOR` - used to limit the number of jobs. It is a factor and relates to `COMPOSER_RESOLVER_WORKERS`. If you have `10` workers and specified a factor of `20` the maximum allowed jobs on the queue equals `200` (`10 * 20`). (default `20`)
     * `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `60`)
     * `COMPOSER_RESOLVER_WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
 

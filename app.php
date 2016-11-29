@@ -17,6 +17,7 @@ $app['redis.jobs.queueKey']               = $app->env('COMPOSER_RESOLVER_JOBS_QU
 $app['redis.jobs.workerPollingFrequency'] = $app->env('COMPOSER_RESOLVER_POLLING_FREQUENCY', 1, 'int');
 $app['redis.jobs.ttl']                    = $app->env('COMPOSER_RESOLVER_JOBS_TTL', 600, 'int');
 $app['redis.jobs.atpj']                   = $app->env('COMPOSER_RESOLVER_JOBS_ATPJ', 60, 'int');
+$app['redis.jobs.maxFactor']              = $app->env('COMPOSER_RESOLVER_JOBS_MAX_FACTOR', 20, 'int');
 $app['redis.jobs.workers']                = $app->env('COMPOSER_RESOLVER_WORKERS', 1, 'int');
 $app['worker.terminate_after_run']        = $app->env('COMPOSER_RESOLVER_TERMINATE_AFTER_RUN', true, 'bool');
 

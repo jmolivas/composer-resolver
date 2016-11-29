@@ -13,7 +13,8 @@ $app['jobs.controller'] = function() use ($app) {
         $app['redis.jobs.queueKey'],
         $app['redis.jobs.ttl'],
         $app['redis.jobs.atpj'],
-        $app['redis.jobs.workers']
+        $app['redis.jobs.workers'],
+        $app['redis.jobs.maxFactor']
     );
 };
 

@@ -56,6 +56,11 @@ class JobsController
     private $workers;
 
     /**
+     * @var int
+     */
+    private $maxFactor;
+
+    /**
      * JobsController constructor.
      *
      * @param Client                $redis
@@ -64,7 +69,8 @@ class JobsController
      * @param string                $queueKey
      * @param int                   $ttl
      * @param int                   $atpj Average time needed per job in seconds
-     * @param int                   $workers  Number of workers
+     * @param int                   $workers Number of workers
+     * @param int                   $maxFactor Defines maximum jobs allowed on queue by a factor ($workers * $maxFactor)
      */
     public function __construct(
         Client $redis,
@@ -73,7 +79,8 @@ class JobsController
         string $queueKey,
         int $ttl,
         int $atpj,
-        int $workers
+        int $workers,
+        int $maxFactor
     ) {
         $this->redis        = $redis;
         $this->urlGenerator = $urlGenerator;
@@ -82,6 +89,7 @@ class JobsController
         $this->ttl          = $ttl;
         $this->atpj         = $atpj;
         $this->workers      = $workers;
+        $this->maxFactor    = $maxFactor;
     }
 
     /**
@@ -116,6 +124,16 @@ class JobsController
      */
     public function postAction(Request $request) : Response
     {
+        // Check maximum allowed on queue
+        $maximum = (int) $this->workers * $this->maxFactor;
+
+        if ($this->redis->llen($this->queueKey) >= $maximum) {
+            return new Response(
+                'Maximum number of jobs reached. Try again later.',
+                503
+            );
+        }
+
         $composerJson = $request->getContent();
 
         if (null === json_decode($composerJson)) {

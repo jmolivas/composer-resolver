@@ -25,7 +25,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             30,
-            1
+            1,
+            20
         );
         $this->assertInstanceOf('Toflar\ComposerResolver\Controller\JobsController', $controller);
     }
@@ -42,7 +43,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             $atpj,
-            $workers
+            $workers,
+            20
         );
 
         $response = $controller->indexAction();
@@ -50,6 +52,26 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertEquals($expected, $json);
+    }
+
+    public function testPostActionWhenTooManyJobsOnQueue()
+    {
+        $controller = new JobsController(
+            $this->getRedis(200),
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            'key',
+            600,
+            10,
+            1,
+            20
+        );
+
+        $request = new Request();
+        $response = $controller->postAction($request);
+
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame('Maximum number of jobs reached. Try again later.', $response->getContent());
     }
 
     public function testPostActionWithInvalidJson()
@@ -61,7 +83,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $request = new Request([], [], [], [], [], [], 'I am invalid json.');
@@ -80,7 +103,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $request = new Request([], [], [], [], [], [], '{"I am valid":"json","but I have":"no relation to the composer","schema":{"at":"all"}}');
@@ -103,7 +127,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $composerJson = [
@@ -139,7 +164,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $composerJson = [
@@ -163,7 +189,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
 
@@ -201,9 +228,21 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             );
 
         $redis = $this->getRedis(1);
-        $redis->expects($this->exactly(2))
+        $redis->expects($this->exactly(3))
             ->method('__call')
             ->withConsecutive(
+                // llen call
+                [
+                    $this->equalTo('llen'),
+                    $this->callback(function($args) use ($queueKey) {
+                        try {
+                            $this->assertEquals($queueKey, $args[0]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ],
                 // setex call
                 [
                     $this->equalTo('setex'),
@@ -244,7 +283,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queueKey,
             600,
             10,
-            1
+            1,
+            20
         );
 
         $composerJson = [
@@ -333,7 +373,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->getAction('nonsenseId');
@@ -377,7 +418,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queueKey,
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->getAction($jobData['id']);
@@ -415,7 +457,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queueKey,
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->deleteAction($jobId);
@@ -440,7 +483,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->getComposerLockAction('nonsenseId');
@@ -483,7 +527,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queueKey,
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->getComposerLockAction($jobData['id']);
@@ -508,7 +553,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'key',
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->getComposerOutputAction('nonsenseId');
@@ -553,7 +599,8 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queueKey,
             600,
             10,
-            1
+            1,
+            20
         );
 
         $response = $controller->getComposerOutputAction($jobData['id']);
