@@ -300,7 +300,7 @@ working:
 * On the `worker` container/service:
     * `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
     * `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
-    * `COMPOSER_RESOLVER_POLLING_FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `1`)
+    * `COMPOSER_RESOLVER_POLLING_FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `1`, be careful here and adjust when you scale. Having 500 workers that are all polling every second doesn't sound like a good plan!)
     * `COMPOSER_RESOLVER_TERMINATE_AFTER_RUN` - defines whether the worker process is killed after run (default `1` aka `true`)
 
 ### Manage / Scale
