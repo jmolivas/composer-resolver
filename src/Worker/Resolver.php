@@ -257,7 +257,7 @@ class Resolver
             ->setVerbose(true) // Always verbose for composer. Verbosity is managed on the JobIO
             ->setDevMode(true) // Default is true, use --no-dev to disable
             ->setDumpAutoloader(false)
-            ->setDisableImplicitOperations()
+            ->setExecuteOperations(false)
         ;
 
         // Check if additional installed packages are provided
