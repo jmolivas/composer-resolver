@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $app = require_once __DIR__ . '/../app.php';
 
 /** @var \Toflar\ComposerResolver\Worker\Resolver $resolver */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Toflar\ComposerResolver\Tests;
 
 use Symfony\Component\Console\Helper\HelperSet;

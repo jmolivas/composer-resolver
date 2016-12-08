@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Toflar\ComposerResolver;
 
 use Symfony\Component\Console\Output\Output;
