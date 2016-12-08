@@ -8,8 +8,13 @@
             "email": "yanick.witschi@terminal42.ch"
         }
     ],
+    "config": {
+        "platform": {
+            "php": "7.1.0"
+        }
+    },
     "require": {
-        "php": "^7.0",
+        "php": "^7.1",
         "silex/silex": "^2.0",
         "composer/composer": "dev-master",
         "predis/predis": "^1.1",

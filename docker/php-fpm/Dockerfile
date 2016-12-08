@@ -1,4 +1,4 @@
-FROM php:7-fpm-alpine
+FROM php:7.1-fpm-alpine
 
 MAINTAINER Yanick Witschi <yanick.witschi@terminal42.ch>
 
