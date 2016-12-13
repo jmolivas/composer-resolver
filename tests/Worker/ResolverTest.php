@@ -84,8 +84,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
     public function testUnsuccessfulRun()
     {
-        $installerRef = null;
-        $jobRef = null;
         $queueKey = 'whatever';
         $pollingFrequency = 5;
         $jobData = [
@@ -96,7 +94,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
         $resolver = $this->getResolver(
             $this->getRedis($queueKey, $pollingFrequency, $jobData),
-            $this->getLogger($installerRef, $jobRef),
+            $this->createMock(LoggerInterface::class),
             __DIR__,
             $queueKey,
             5
@@ -104,9 +102,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
         $resolver->setMockRunResult(1);
         $resolver->run($pollingFrequency);
+        $result = $resolver->getLastResult();
 
-        /** @var Job $jobRef */
-        $this->assertSame(Job::STATUS_FINISHED_WITH_ERRORS, $jobRef->getStatus());
+        $this->assertSame(Job::STATUS_FINISHED_WITH_ERRORS, $result->getJob()->getStatus());
     }
 
     /**
@@ -118,14 +116,12 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
      */
     public function testSuccessfulRun($jobData, $installerAssertionProperties, $shouldDebugEnabled, $shouldBeDecorated)
     {
-        $installerRef = null;
-        $jobRef = null;
         $queueKey = 'whatever';
         $pollingFrequency = 5;
 
         $resolver = $this->getResolver(
             $this->getRedis($queueKey, $pollingFrequency, $jobData),
-            $this->getLogger($installerRef, $jobRef),
+            $this->createMock(LoggerInterface::class),
             __DIR__,
             $queueKey,
             5
@@ -134,13 +130,13 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $resolver->setMockRunResult(0);
         $resolver->setMockComposerLock('composer-lock-result');
         $resolver->run($pollingFrequency);
+        $result = $resolver->getLastResult();
 
         // Test the installer values by using reflection as unfortunately
         // a lot of variables do not have any getter method
         $io = null;
 
-        /** @var Installer $installerRef */
-        foreach ($this->getPropertiesOfClassIncludingParents($installerRef) as $k => $v) {
+        foreach ($this->getPropertiesOfClassIncludingParents($result->getInstaller()) as $k => $v) {
             if (in_array($k, array_keys($installerAssertionProperties))) {
 
                 if ('not-null' == $installerAssertionProperties[$k]) {
@@ -171,9 +167,8 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         // Assert decorated (ansi)
         $this->assertSame($shouldBeDecorated, $io->getOutput()->isDecorated());
 
-        /** @var Job $jobRef */
-        $this->assertSame(Job::STATUS_FINISHED, $jobRef->getStatus());
-        $this->assertSame('composer-lock-result', $jobRef->getComposerLock());
+        $this->assertSame(Job::STATUS_FINISHED, $result->getJob()->getStatus());
+        $this->assertSame('composer-lock-result', $result->getJob()->getComposerLock());
     }
 
     public function successfulRunDataProvider()
@@ -385,25 +380,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
         /** @var Resolver $mock */
         $mock->setTerminateAfterRun($shouldTerminate);
-
-        return $mock;
-    }
-
-    private function getLogger(&$installerRef, &$jobRef)
-    {
-        $mock = $this->createMock(LoggerInterface::class);
-
-        $mock->expects($this->any())
-            ->method('debug')
-            ->with(
-                $this->equalTo('Resolved job.'),
-                $this->callback(function($args) use (&$installerRef, &$jobRef) {
-                    $installerRef = $args['installer'];
-                    $jobRef = $args['job'];
-                    return true;
-                })
-            )
-        ;
 
         return $mock;
     }

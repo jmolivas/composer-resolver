@@ -18,6 +18,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\JobIO;
 use Toflar\ComposerResolver\JobOutput;
+use Toflar\ComposerResolver\Tests\Worker\ResolvingResultTest;
 
 /**
  * Class Resolver
@@ -68,6 +69,11 @@ class Resolver
     private $terminateAfterRun = true;
 
     /**
+     * @var ResolvingResultTest
+     */
+    private $lastResult;
+
+    /**
      * Resolver constructor.
      *
      * @param Client          $predis
@@ -110,6 +116,14 @@ class Resolver
     }
 
     /**
+     * @return ResolvingResult|null
+     */
+    public function getLastResult() : ?ResolvingResult
+    {
+        return $this->lastResult;
+    }
+
+    /**
      * @return mixed
      */
     public function getTerminateAfterRun()
@@ -149,8 +163,12 @@ class Resolver
 
             // Process
             try {
-                $job = $this->resolve($job);
+                $this->lastResult = $this->resolve($job);
+
             } catch (\Throwable $t) {
+
+                $this->lastResult = new ResolvingResult($job, 2, null);
+
                 $this->logger->error('Error during resolving process: ' . $t->getMessage(), [
                     'line'  => $t->getLine(),
                     'file'  => $t->getFile(),
@@ -187,10 +205,10 @@ class Resolver
      *
      * @param Job   $job
      *
-     * @return Job
+     * @return ResolvingResult
      * @throws \Exception
      */
-    private function resolve(Job $job) : Job
+    private function resolve(Job $job) : ResolvingResult
     {
         // Create the composer.json in a temporary jobs directory where we
         // work on
@@ -225,15 +243,12 @@ class Resolver
 
         $job->setComposerOutput($job->getComposerOutput() . PHP_EOL . 'Finished Composer Cloud resolving.');
 
-        $this->logger->debug('Resolved job.', [
-            'job'       => $job,
-            'installer' => $installer,
-        ]);
+        $this->logger->info('Resolved job ' . $job->getId());
 
         // Remove job dir
         $fs->remove($jobDir);
 
-        return $job;
+        return new ResolvingResult($job, $out, $installer);
     }
 
     /**
