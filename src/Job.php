@@ -36,6 +36,11 @@ class Job implements \JsonSerializable
     private $status;
 
     /**
+     * @var \DateTime
+     */
+    private $processingStartTime;
+
+    /**
      * @var string
      */
     private $composerJson;
@@ -125,6 +130,10 @@ class Job implements \JsonSerializable
     public function setStatus(string $status) : self
     {
         $this->status = $status;
+
+        if ($status === self::STATUS_PROCESSING) {
+            $this->processingStartTime = new \DateTime();
+        }
 
         return $this;
     }
@@ -218,19 +227,44 @@ class Job implements \JsonSerializable
     }
 
     /**
+     * @return \DateTime|null
+     */
+    public function getProcessingStartTime(): ?\DateTime
+    {
+        return $this->processingStartTime;
+    }
+
+    /**
+     * @param \DateTime $processingStartTime
+     */
+    private function setProcessingStartTime(\DateTime $processingStartTime): self
+    {
+        $this->processingStartTime = $processingStartTime;
+
+        return $this;
+    }
+
+    /**
      * Get the job data as an array.
      *
      * @return array
      */
     public function getAsArray() : array
     {
+        $processingStartTime = '';
+
+        if (null !== $this->processingStartTime) {
+            $processingStartTime = $this->processingStartTime->format(\DateTime::ISO8601);
+        }
+
         return [
-            'id'                => $this->id,
-            'status'            => $this->status,
-            'composerJson'      => $this->composerJson,
-            'composerLock'      => $this->composerLock,
-            'composerOutput'    => $this->composerOutput,
-            'composerOptions'   => $this->composerOptions,
+            'id'                    => $this->id,
+            'status'                => $this->status,
+            'composerJson'          => $this->composerJson,
+            'composerLock'          => $this->composerLock,
+            'composerOutput'        => $this->composerOutput,
+            'composerOptions'       => $this->composerOptions,
+            'processingStartTime'   => $processingStartTime
         ];
     }
 
@@ -270,6 +304,12 @@ class Job implements \JsonSerializable
 
         if (isset($array['composerOptions']) && is_array($array['composerOptions'])) {
             $job->setComposerOptions($array['composerOptions']);
+        }
+
+        if (isset($array['processingStartTime']) && '' !== $array['processingStartTime']) {
+            $job->setProcessingStartTime(
+                \DateTime::createFromFormat(\DateTime::ISO8601, $array['processingStartTime'])
+            );
         }
 
         return $job;

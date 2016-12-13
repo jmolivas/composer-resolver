@@ -40,24 +40,26 @@ class JobTest extends \PHPUnit_Framework_TestCase
         $job->setComposerLock('test');
 
         $this->assertSame([
-            'id'                => 'foobar',
-            'status'            => Job::STATUS_PROCESSING,
-            'composerJson'      => 'composerJson',
-            'composerLock'      => 'test',
-            'composerOutput'    => null,
-            'composerOptions'   => [],
+            'id'                    => 'foobar',
+            'status'                => Job::STATUS_PROCESSING,
+            'composerJson'          => 'composerJson',
+            'composerLock'          => 'test',
+            'composerOutput'        => null,
+            'composerOptions'       => [],
+            'processingStartTime'   => '',
         ], $job->getAsArray());
     }
 
     public function testCreateFromArray()
     {
         $array = [
-            'id'                => 'foobar',
-            'status'            => Job::STATUS_PROCESSING,
-            'composerJson'      => 'composerJson',
-            'composerLock'      => 'test',
-            'composerOutput'    => 'composer-output',
-            'composerOptions'   => ['options'],
+            'id'                    => 'foobar',
+            'status'                => Job::STATUS_PROCESSING,
+            'composerJson'          => 'composerJson',
+            'composerLock'          => 'test',
+            'composerOutput'        => 'composer-output',
+            'composerOptions'       => ['options'],
+            'processingStartTime'   => '2016-12-13T15:59:08+0000',
         ];
 
         $job = Job::createFromArray($array);
@@ -66,6 +68,9 @@ class JobTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('test', $job->getComposerLock());
         $this->assertSame(['options'], $job->getComposerOptions());
         $this->assertSame($array, $job->getAsArray());
+
+        $dt = \DateTime::createFromFormat(\DateTime::ISO8601, '2016-12-13T15:59:08+0000');
+        $this->assertEquals($dt, $job->getProcessingStartTime());
     }
 
     public function testJsonSerialize()
@@ -81,7 +86,18 @@ class JobTest extends \PHPUnit_Framework_TestCase
 
         $job = Job::createFromArray($array);
 
-        $this->assertSame('{"id":"foobar","status":"processing","composerJson":"composerJson","composerLock":"test","composerOutput":"composer-output","composerOptions":["options"]}', json_encode($job));
+        $this->assertSame('{"id":"foobar","status":"processing","composerJson":"composerJson","composerLock":"test","composerOutput":"composer-output","composerOptions":["options"],"processingStartTime":""}', json_encode($job));
+    }
+
+    public function testProcessingStartTime()
+    {
+        $job = new Job('foobar', Job::STATUS_QUEUED, 'composerJson');
+
+        $this->assertNull($job->getProcessingStartTime());
+
+        $job->setStatus(Job::STATUS_PROCESSING);
+
+        $this->assertInstanceOf(\DateTime::class, $job->getProcessingStartTime());
     }
 
     /**
