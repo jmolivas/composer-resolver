@@ -69,7 +69,7 @@ class Resolver
     private $terminateAfterRun = true;
 
     /**
-     * @var ResolvingResultTest
+     * @var ResolvingResult
      */
     private $lastResult;
 
