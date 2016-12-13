@@ -21,7 +21,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             $this->createMock(LoggerInterface::class),
             __DIR__,
             'whatever',
-            5
+            5,
+            5,
+            120
         );
         $this->assertInstanceOf('Toflar\ComposerResolver\Worker\Resolver', $resolver);
     }
@@ -32,12 +34,12 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $pollingFrequency = 5;
         $jobData = [
             'id' => 'foobar.id',
-            'status' => Job::STATUS_PROCESSING,
+            'status' => Job::STATUS_QUEUED,
             'composerJson' => '{very invalid stuff which will force an exception thrown}',
         ];
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getRedis($queueKey, $jobData),
             $logger = $this->createMock(Logger::class),
             __DIR__,
             $queueKey,
@@ -56,7 +58,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $pollingFrequency = 5;
         $jobData = [
             'id' => 'foobar.id',
-            'status' => Job::STATUS_PROCESSING,
+            'status' => Job::STATUS_QUEUED,
             'composerJson' => '{very invalid stuff which will force an exception thrown}',
         ];
         $logger = $this->createMock(Logger::class);
@@ -72,7 +74,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             );
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getRedis($queueKey, $jobData),
             $logger,
             __DIR__,
             $queueKey,
@@ -88,12 +90,12 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $pollingFrequency = 5;
         $jobData = [
             'id' => 'foobar.id',
-            'status' => Job::STATUS_PROCESSING,
+            'status' => Job::STATUS_QUEUED,
             'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
         ];
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getRedis($queueKey, $jobData),
             $this->createMock(LoggerInterface::class),
             __DIR__,
             $queueKey,
@@ -120,7 +122,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         $pollingFrequency = 5;
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getRedis($queueKey, $jobData),
             $this->createMock(LoggerInterface::class),
             __DIR__,
             $queueKey,
@@ -177,7 +179,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'Test default settings' => [
                 [
                     'id' => 'foobar.id',
-                    'status' => Job::STATUS_PROCESSING,
+                    'status' => Job::STATUS_QUEUED,
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                 ],
                 [
@@ -196,7 +198,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'Test update white list ' => [
                 [
                     'id' => 'foobar.id',
-                    'status' => Job::STATUS_PROCESSING,
+                    'status' => Job::STATUS_QUEUED,
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                     'composerOptions' => [
                         'args' => [
@@ -221,7 +223,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'Test all other composer related options' => [
                 [
                     'id' => 'foobar.id',
-                    'status' => Job::STATUS_PROCESSING,
+                    'status' => Job::STATUS_QUEUED,
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                     'composerOptions' => [
                         'args' => [
@@ -253,7 +255,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'Test console output related options' => [
                 [
                     'id' => 'foobar.id',
-                    'status' => Job::STATUS_PROCESSING,
+                    'status' => Job::STATUS_QUEUED,
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                     'composerOptions' => [
                         'options' => [
@@ -278,7 +280,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'Test no-ansi console output option' => [
                 [
                     'id' => 'foobar.id',
-                    'status' => Job::STATUS_PROCESSING,
+                    'status' => Job::STATUS_QUEUED,
                     'composerJson' => '{"name":"whatever/whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}}}',
                     'composerOptions' => [
                         'options' => [
@@ -302,7 +304,7 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             'Test additional repository' => [
                 [
                     'id' => 'foobar.id',
-                    'status' => Job::STATUS_PROCESSING,
+                    'status' => Job::STATUS_QUEUED,
                     'composerJson' => '{"name":"whatever","description":"whatever","config":{"platform":{"php":"7.0.11"}},"extra":{"composer-resolver":{"installed-repository":{"my\/package":"1.0.0"}}}}',
                     'composerOptions' => [
                         'options' => [
@@ -326,40 +328,63 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function getRedis($queueKey, $pollingFrequency, $jobData)
+    private function getRedis($queueKey, $jobData)
     {
         $mock = $this->createMock(Client::class);
-        $mock->expects($this->at(0))
+        $mock->expects($this->any())
             ->method('__call')
-            ->with(
-                $this->equalTo('blpop'),
-                $this->callback(function($args) use ($queueKey, $pollingFrequency) {
-                    try {
-                        $this->assertSame($queueKey, $args[0]);
-                        $this->assertSame($pollingFrequency, $args[1]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
+            ->withConsecutive(
+                [
+                    $this->equalTo('lpop'),
+                    $this->callback(function($args) use ($queueKey) {
+                        try {
+                            $this->assertSame($queueKey . '_backup', $args[0]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ],
+                [
+                    $this->equalTo('get'),
+                    $this->callback(function($args) use ($jobData, $queueKey) {
+                        try {
+                            $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ],
+                [
+                    $this->equalTo('lpop'),
+                    $this->callback(function($args) use ($queueKey) {
+                        try {
+                            $this->assertSame($queueKey, $args[0]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ],
+                [
+                    $this->equalTo('get'),
+                    $this->callback(function($args) use ($jobData, $queueKey) {
+                        try {
+                            $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
+                            return true;
+                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
+                            return false;
+                        }
+                    })
+                ]
             )
-            ->willReturn(['whatever', $jobData['id']])
-        ;
-
-        $mock->expects($this->at(1))
-            ->method('__call')
-            ->with(
-                $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData, $queueKey) {
-                    try {
-                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
+            ->willReturn(
+                ['whatever', $jobData['id']],
+                json_encode($jobData),
+                ['whatever', $jobData['id']],
+                json_encode($jobData)
             )
-            ->willReturn(json_encode($jobData))
         ;
 
         return $mock;
@@ -371,8 +396,8 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
     private function getResolver($redis, $logger, $jobsDir, $queueKey, $ttl, $shouldTerminate = false)
     {
         $mock = $this->getMockBuilder(Resolver::class)
-            ->setConstructorArgs([$redis, $logger, $jobsDir, $queueKey, $ttl])
-            ->setMethods(['terminate'])
+            ->setConstructorArgs([$redis, $logger, $jobsDir, $queueKey, $ttl, 5, 120])
+            ->setMethods(['terminate', 'sleep'])
             ->getMock();
 
         $mock->expects($shouldTerminate ? $this->once() : $this->never())

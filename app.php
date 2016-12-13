@@ -13,13 +13,15 @@ $app->register(new Predis\Silex\ClientServiceProvider(), [
     ],
 ]);
 
-$app['redis.jobs.queueKey']               = $app->env('COMPOSER_RESOLVER_JOBS_QUEUE_KEY', 'jobs_queue');
-$app['redis.jobs.workerPollingFrequency'] = $app->env('COMPOSER_RESOLVER_POLLING_FREQUENCY', 1, 'int');
-$app['redis.jobs.ttl']                    = $app->env('COMPOSER_RESOLVER_JOBS_TTL', 600, 'int');
-$app['redis.jobs.atpj']                   = $app->env('COMPOSER_RESOLVER_JOBS_ATPJ', 60, 'int');
-$app['redis.jobs.maxFactor']              = $app->env('COMPOSER_RESOLVER_JOBS_MAX_FACTOR', 20, 'int');
-$app['redis.jobs.workers']                = $app->env('COMPOSER_RESOLVER_WORKERS', 1, 'int');
-$app['worker.terminate_after_run']        = $app->env('COMPOSER_RESOLVER_TERMINATE_AFTER_RUN', true, 'bool');
+$app['redis.jobs.queueKey']                     = $app->env('COMPOSER_RESOLVER_JOBS_QUEUE_KEY', 'jobs_queue');
+$app['redis.jobs.workerPollingFrequency']       = $app->env('COMPOSER_RESOLVER_POLLING_FREQUENCY', 1, 'int');
+$app['redis.jobs.ttl']                          = $app->env('COMPOSER_RESOLVER_JOBS_TTL', 600, 'int');
+$app['redis.jobs.atpj']                         = $app->env('COMPOSER_RESOLVER_JOBS_ATPJ', 60, 'int');
+$app['redis.jobs.maxFactor']                    = $app->env('COMPOSER_RESOLVER_JOBS_MAX_FACTOR', 20, 'int');
+$app['redis.jobs.maxRetriesPerJob']             = $app->env('COMPOSER_RESOLVER_JOBS_MAX_RETRIES_PER_JOB', 5, 'int');
+$app['redis.jobs.secondsToWaitBeforeRetry']     = $app->env('COMPOSER_RESOLVER_JOBS_SECONDS_TO_WAIT_BEFORE_RETRY', (int) $app['redis.jobs.atpj'] * 2, 'int');
+$app['redis.jobs.workers']                      = $app->env('COMPOSER_RESOLVER_WORKERS', 1, 'int');
+$app['worker.terminate_after_run']              = $app->env('COMPOSER_RESOLVER_TERMINATE_AFTER_RUN', true, 'bool');
 
 // Log everything to stout
 $app->register(new Silex\Provider\MonologServiceProvider(), array(
@@ -32,7 +34,9 @@ $app['composer-resolver'] = new \Toflar\ComposerResolver\Worker\Resolver(
     $app['logger'],
     __DIR__ . '/jobs',
     $app['redis.jobs.queueKey'],
-    $app['redis.jobs.ttl']
+    $app['redis.jobs.ttl'],
+    $app['redis.jobs.maxRetriesPerJob'],
+    $app['redis.jobs.secondsToWaitBeforeRetry']
 );
 
 return $app;

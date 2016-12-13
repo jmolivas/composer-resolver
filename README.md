@@ -307,6 +307,9 @@ working:
     * `COMPOSER_RESOLVER_JOBS_TTL` - specifies the TTL for a job in seconds. It will be dropped afterwards. (default `600`)
     * `COMPOSER_RESOLVER_POLLING_FREQUENCY` - specifies the frequency the workers are polling for new jobs in seconds (default `1`, be careful here and adjust when you scale. Having 500 workers that are all polling every second doesn't sound like a good plan!)
     * `COMPOSER_RESOLVER_TERMINATE_AFTER_RUN` - defines whether the worker process is killed after run (default `1` aka `true`)
+    * `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Optional, used for the default setting of `COMPOSER_RESOLVER_JOBS_SECONDS_TO_WAIT_BEFORE_RETRY`. (default `60`)
+    * `COMPOSER_RESOLVER_JOBS_MAX_RETRIES_PER_JOB` - if a job fails (important: failing does not mean resolving is not possible, failing means the process fails e.g. due to memory overflow) the resolver will wait for `COMPOSER_RESOLVER_JOBS_SECONDS_TO_WAIT_BEFORE_RETRY` seconds and then try again for the configured number of times (default `5`)
+    * `COMPOSER_RESOLVER_JOBS_SECONDS_TO_WAIT_BEFORE_RETRY` - see description of `COMPOSER_RESOLVER_JOBS_MAX_RETRIES_PER_JOB` (default `2 * COMPOSER_RESOLVER_JOBS_ATPJ`)
 
 ### Manage / Scale
 

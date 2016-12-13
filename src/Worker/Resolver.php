@@ -56,6 +56,16 @@ class Resolver
     /**
      * @var int
      */
+    private $maxRetriesPerJob;
+
+    /**
+     * @var int
+     */
+    private $secondsToWaitBeforeRetry;
+
+    /**
+     * @var int
+     */
     private $mockRunResult = null;
 
     /**
@@ -82,13 +92,15 @@ class Resolver
      * @param string          $queueKey
      * @param int             $ttl
      */
-    public function __construct(Client $predis, LoggerInterface $logger, string $jobsDir, string $queueKey, int $ttl)
+    public function __construct(Client $predis, LoggerInterface $logger, string $jobsDir, string $queueKey, int $ttl, int $maxRetriesPerJob, int $secondsToWaitBeforeRetry)
     {
         $this->predis = $predis;
         $this->logger = $logger;
         $this->jobsDir = $jobsDir;
         $this->queueKey = $queueKey;
         $this->ttl = $ttl;
+        $this->maxRetriesPerJob = $maxRetriesPerJob;
+        $this->secondsToWaitBeforeRetry = $secondsToWaitBeforeRetry;
     }
 
     /**
@@ -150,16 +162,37 @@ class Resolver
      */
     public function run(int $pollingFrequency)
     {
-        $predis = $this->predis;
-        $job    = $predis->blpop($this->queueKey, $pollingFrequency);
+        $this->sleep($pollingFrequency);
 
-        if (null !== $job && null !== ($jobData = $predis->get($this->getJobKey($job[1])))) {
+        // Handle backup of jobs
+        $this->checkForBackedUpJobs();
+
+        $job = $this->predis->lpop($this->queueKey);
+
+        if (null !== $job && null !== ($jobData = $this->predis->get($this->getJobKey($job[1])))) {
 
             $job = Job::createFromArray(json_decode($jobData, true));
 
+            // Ignore jobs that have been finished already (might happen for backed up jobs)
+            // In such a case, ignore the current job and immediately run again without sleep() so it fetches
+            // the next one.
+            if (Job::STATUS_FINISHED === $job->getStatus()
+                || Job::STATUS_FINISHED_WITH_ERRORS === $job->getStatus()
+            ) {
+                return $this->run(0);
+            }
+
             // Set status to processing
             $job->setStatus(Job::STATUS_PROCESSING);
-            $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
+
+            // Increase retries
+            $job->increaseRetries();
+
+            // Store the job again
+            $this->predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
+
+            // Put on the backup list
+            $this->predis->rpush($this->getBackupQueueKey(), [$job->getId()]);
 
             // Process
             try {
@@ -180,7 +213,7 @@ class Resolver
             }
 
             // Finished
-            $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
+            $this->predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
             $this->logger->info('Finished working on job ' . $job->getId());
 
             if ($this->terminateAfterRun) {
@@ -198,6 +231,73 @@ class Resolver
         $this->logger->info('Terminating worker process now.');
         exit;
         // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Sleeps for n seconds
+     *
+     * @param int $seconds
+     */
+    public function sleep(int $seconds)
+    {
+        // @codeCoverageIgnoreStart
+        sleep($seconds);
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Check for backed up jobs and put them back on the real queue if needed.
+     */
+    private function checkForBackedUpJobs()
+    {
+        $job = $this->predis->lpop($this->getBackupQueueKey());
+
+        if (null === $job) {
+            return;
+        }
+
+        if (null === ($jobData = $this->predis->get($this->getJobKey($job[1])))) {
+            return;
+        }
+
+        $job = Job::createFromArray(json_decode($jobData, true));
+
+        // We now have a job of the backup queue
+        // We check for max retries and processing start time now
+        // If max retries is not exceeded and start time is younger than
+        // what we set as maximum, we put it back on the backup queue so the
+        // next worker does the same thing again.
+
+        // Seconds
+        $dtStart = $job->getProcessingStartTime();
+
+        // Handle null case (ignore the job)
+        if (null === $dtStart) {
+            return;
+        }
+
+        $dtNow = new \DateTime();
+        $dtStart->add(new \DateInterval('PT' . $this->secondsToWaitBeforeRetry . 'S'));
+
+        // Maybe still some worker working on it, check later (put back on the back up list)
+        // at the very end (rpush)
+        if ($dtNow < $dtStart) {
+            $this->predis->rpush($this->getBackupQueueKey(), [$job->getId()]);
+            return;
+        }
+
+        // Max retries
+        if ($job->getRetries() >= $this->maxRetriesPerJob) {
+            // max retries exceeded: noop which means the job doesn't get back on any
+            // list and is thus ignored
+            // no need to delete the job details as they will get deleted by
+            // redis when the TTL expires
+            return;
+        }
+
+        // Real back up functionality because we now put it back on the real queue
+        // on the first position (lpush)
+        $this->predis->lpush($this->queueKey, [$job->getId()]);
     }
 
     /**
@@ -402,5 +502,13 @@ class Resolver
     private function getJobKey(string $jobId) : string
     {
         return $this->queueKey . ':jobs:' . $jobId;
+    }
+
+    /**
+     * @return string
+     */
+    private function getBackupQueueKey() : string
+    {
+        return $this->queueKey . '_backup';
     }
 }
