@@ -41,6 +41,11 @@ class Job implements \JsonSerializable
     private $processingStartTime;
 
     /**
+     * @var int
+     */
+    private $retries = 0;
+
+    /**
      * @var string
      */
     private $composerJson;
@@ -245,6 +250,34 @@ class Job implements \JsonSerializable
     }
 
     /**
+     * @return int
+     */
+    public function getRetries(): int
+    {
+        return $this->retries;
+    }
+
+    /**
+     * @return int
+     */
+    public function increaseRetries(): self
+    {
+        $this->retries++;
+
+        return $this;
+    }
+
+    /**
+     * @param int $retries
+     */
+    private function setRetries(int $retries) : self
+    {
+        $this->retries = $retries;
+
+        return $this;
+    }
+
+    /**
      * Get the job data as an array.
      *
      * @return array
@@ -264,7 +297,8 @@ class Job implements \JsonSerializable
             'composerLock'          => $this->composerLock,
             'composerOutput'        => $this->composerOutput,
             'composerOptions'       => $this->composerOptions,
-            'processingStartTime'   => $processingStartTime
+            'processingStartTime'   => $processingStartTime,
+            'retries'               => $this->retries,
         ];
     }
 
@@ -301,7 +335,6 @@ class Job implements \JsonSerializable
             $job->setComposerOutput((string) $array['composerOutput']);
         }
 
-
         if (isset($array['composerOptions']) && is_array($array['composerOptions'])) {
             $job->setComposerOptions($array['composerOptions']);
         }
@@ -310,6 +343,10 @@ class Job implements \JsonSerializable
             $job->setProcessingStartTime(
                 \DateTime::createFromFormat(\DateTime::ISO8601, $array['processingStartTime'])
             );
+        }
+
+        if (isset($array['retries']) && is_int($array['retries'])) {
+            $job->setRetries($array['retries']);
         }
 
         return $job;
