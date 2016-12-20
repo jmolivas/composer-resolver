@@ -144,6 +144,17 @@ class Job implements \JsonSerializable
     }
 
     /**
+     * Helper method to know whether a job is finished.
+     *
+     * @return bool
+     */
+    public function isFinished() : bool
+    {
+        return $this->getStatus() === self::STATUS_FINISHED_WITH_ERRORS ||
+            $this->getStatus() === self::STATUS_FINISHED;
+    }
+
+    /**
      * Get the composer.json
      *
      * @return string

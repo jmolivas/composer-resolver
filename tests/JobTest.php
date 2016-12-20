@@ -34,6 +34,21 @@ class JobTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('newComposerJson', $job->getComposerJson());
     }
 
+    public function testIsFinished()
+    {
+        $job = new Job('foobar', Job::STATUS_QUEUED, 'composerJson');
+        $this->assertFalse($job->isFinished());
+
+        $job->setStatus(Job::STATUS_PROCESSING);
+        $this->assertFalse($job->isFinished());
+
+        $job->setStatus(Job::STATUS_FINISHED);
+        $this->assertTrue($job->isFinished());
+
+        $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
+        $this->assertTrue($job->isFinished());
+    }
+
     public function testGetAsArray()
     {
         $job = new Job('foobar', Job::STATUS_PROCESSING, 'composerJson');
