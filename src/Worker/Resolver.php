@@ -233,7 +233,7 @@ class Resolver
         if (0 === $out) {
             $lockContent = (string) (null !== $this->mockComposerLock)
                 ? $this->mockComposerLock
-                : file_get_contents($composerLock);
+                : (string) file_get_contents($composerLock);
 
             $job->setComposerLock($lockContent)
                     ->setStatus(Job::STATUS_FINISHED);
