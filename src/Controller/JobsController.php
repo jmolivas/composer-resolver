@@ -320,8 +320,14 @@ class JobsController
     {
         $errors             = [];
         $composerJsonData   = json_decode($composerJson);
+
         $schemaFile         = __DIR__ . '/../../vendor/composer/composer/res/composer-schema.json';
-        $schemaData         = json_decode(file_get_contents($schemaFile));
+        // Prepend with file:// only when not using a special schema already (e.g. in the phar)
+        if (false === strpos($schemaFile, '://')) {
+            $schemaFile = 'file://' . $schemaFile;
+        }
+        $schemaData         = (object) ['$ref' => $schemaFile];
+
         $validator          = new Validator();
         $validator->check($composerJsonData, $schemaData);
 
