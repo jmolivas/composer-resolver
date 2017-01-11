@@ -11,7 +11,7 @@
     "require": {
         "php": "^7.1",
         "silex/silex": "^2.0",
-        "composer/composer": "dev-master",
+        "composer/composer": "dev-fix-writelock",
         "predis/predis": "^1.1",
         "predis/service-provider": "^2.0",
         "monolog/monolog": "^1.19",
@@ -33,5 +33,11 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Toflar/composer"
+        }
+    ]
 }
