@@ -123,13 +123,6 @@ class JobsController
 
         $composerJson = $request->getContent();
 
-        if (null === json_decode($composerJson)) {
-            return new Response(
-                'Your composer.json does not contain valid json content.',
-                400
-            );
-        }
-
         $composerJson = $this->sanitizeComposerJson($composerJson);
 
         $errors = $this->validateComposerJsonSchema($composerJson);

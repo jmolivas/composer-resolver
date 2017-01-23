@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Toflar\ComposerResolver\Tests\Controller;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -13,6 +14,7 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Toflar\ComposerResolver\Controller\JobsController;
+use Toflar\ComposerResolver\EventListener\CheckInvalidJsonSubscriber;
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\Queue;
 
@@ -54,23 +56,29 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $json);
     }
 
-    public function testPostActionWithInvalidJson()
+    public function testPostActionWithEventListenerResponse()
     {
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addSubscriber(new CheckInvalidJsonSubscriber());
+
+        // Test queue is never called
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->never())
+            ->method('addJob');
+
         $controller = new JobsController(
-            $this->getQueue(1),
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            $this->getEventDispatcher(),
-            10,
+            $eventDispatcher,
+            30,
             1,
             20
         );
 
-        $request = new Request([], [], [], [], [], [], 'I am invalid json.');
-        $response = $controller->postAction($request);
+        $request = new Request([], [], [], [], [], [], 'invalid-json');
 
-        $this->assertSame(400, $response->getStatusCode());
-        $this->assertSame('Your composer.json does not contain valid json content.', $response->getContent());
+        $controller->postAction($request);
     }
 
     public function testPostActionWithInvalidComposerSchema()
