@@ -7,8 +7,6 @@ namespace Toflar\ComposerResolver\Tests\EventListener;
 use Symfony\Component\HttpFoundation\Request;
 use Toflar\ComposerResolver\Event\PostActionEvent;
 use Toflar\ComposerResolver\EventListener\CheckInvalidJsonSubscriber;
-use Toflar\ComposerResolver\EventListener\QueueLengthLimitSubscriber;
-use Toflar\ComposerResolver\Queue;
 
 /**
  * Class CheckInvalidJsonSubscriberTest

@@ -8,7 +8,9 @@ use Pimple\Container;
 use Predis\Client;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Toflar\ComposerResolver\Event\PostActionEvent;
+use Toflar\ComposerResolver\EventListener\CheckInvalidJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\QueueLengthLimitSubscriber;
+use Toflar\ComposerResolver\EventListener\SanitizeComposerJsonSubscriber;
 use Toflar\ComposerResolver\Provider\PostActionProvider;
 use Toflar\ComposerResolver\Queue;
 
@@ -55,5 +57,7 @@ class PostActionProviderTest extends \PHPUnit_Framework_TestCase
         $listeners = $dispatcher->getListeners(PostActionEvent::EVENT_NAME);
 
         $this->assertInstanceOf(QueueLengthLimitSubscriber::class, $listeners[0][0]);
+        $this->assertInstanceOf(CheckInvalidJsonSubscriber::class, $listeners[1][0]);
+        $this->assertInstanceOf(SanitizeComposerJsonSubscriber::class, $listeners[2][0]);
     }
 }

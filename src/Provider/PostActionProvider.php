@@ -10,6 +10,7 @@ use Silex\Api\EventListenerProviderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Toflar\ComposerResolver\EventListener\CheckInvalidJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\QueueLengthLimitSubscriber;
+use Toflar\ComposerResolver\EventListener\SanitizeComposerJsonSubscriber;
 
 class PostActionProvider implements ServiceProviderInterface, EventListenerProviderInterface
 {
@@ -28,6 +29,9 @@ class PostActionProvider implements ServiceProviderInterface, EventListenerProvi
         $app['listener.check_invalid_json'] = function (Container $app) {
             return new CheckInvalidJsonSubscriber();
         };
+        $app['listener.sanitize_composer_json'] = function (Container $app) {
+            return new SanitizeComposerJsonSubscriber();
+        };
     }
 
     /**
@@ -37,5 +41,6 @@ class PostActionProvider implements ServiceProviderInterface, EventListenerProvi
     {
         $dispatcher->addSubscriber($app['listener.queue_length_limit']);
         $dispatcher->addSubscriber($app['listener.check_invalid_json']);
+        $dispatcher->addSubscriber($app['listener.sanitize_composer_json']);
     }
 }

@@ -204,22 +204,10 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
                     'php' => '7.0.11'
                 ],
             ],
-            // This is needed to check if the composer.json is correctly sanitized
             'repositories' => [
-                // valid one
                 [
                     'type' => 'vcs',
                     'url' => 'http://whatever.com'
-                ],
-                // local one - invalid
-                [
-                    'type' => 'git',
-                    'url' => '/usr/foobar/repos/project/bundle'
-                ],
-                // artifact one - invalid
-                [
-                    'type' => 'artifact',
-                    'url' => './repos/artifact'
                 ],
             ],
             // Check for extra
