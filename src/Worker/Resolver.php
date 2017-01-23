@@ -9,7 +9,6 @@ use Composer\Installer;
 use Composer\Package\Package;
 use Composer\Repository\ArrayRepository;
 use Composer\Semver\VersionParser;
-use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -18,7 +17,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\JobIO;
 use Toflar\ComposerResolver\JobOutput;
-use Toflar\ComposerResolver\Tests\Worker\ResolvingResultTest;
+use Toflar\ComposerResolver\Queue;
 
 /**
  * Class Resolver
@@ -29,9 +28,9 @@ use Toflar\ComposerResolver\Tests\Worker\ResolvingResultTest;
 class Resolver
 {
     /**
-     * @var Client
+     * @var Queue
      */
-    private $predis;
+    private $queue;
 
     /**
      * @var LoggerInterface
@@ -42,16 +41,6 @@ class Resolver
      * @var string
      */
     private $jobsDir;
-
-    /**
-     * @var string
-     */
-    private $queueKey;
-
-    /**
-     * @var int
-     */
-    private $ttl;
 
     /**
      * @var int
@@ -76,19 +65,15 @@ class Resolver
     /**
      * Resolver constructor.
      *
-     * @param Client          $predis
+     * @param Queue           $queue
      * @param LoggerInterface $logger
      * @param string          $jobsDir
-     * @param string          $queueKey
-     * @param int             $ttl
      */
-    public function __construct(Client $predis, LoggerInterface $logger, string $jobsDir, string $queueKey, int $ttl)
+    public function __construct(Queue $queue, LoggerInterface $logger, string $jobsDir)
     {
-        $this->predis = $predis;
+        $this->queue = $queue;
         $this->logger = $logger;
         $this->jobsDir = $jobsDir;
-        $this->queueKey = $queueKey;
-        $this->ttl = $ttl;
     }
 
     /**
@@ -150,42 +135,40 @@ class Resolver
      */
     public function run(int $pollingFrequency)
     {
-        $predis = $this->predis;
-        $job    = $predis->blpop($this->queueKey, $pollingFrequency);
+        $job = $this->queue->getNextJob($pollingFrequency);
 
-        if (null !== $job && null !== ($jobData = $predis->get($this->getJobKey($job[1])))) {
+        if (null === $job) {
+            return;
+        }
 
-            $job = Job::createFromArray(json_decode($jobData, true));
+        // Set status to processing
+        $job->setStatus(Job::STATUS_PROCESSING);
+        $this->queue->updateJob($job);
 
-            // Set status to processing
-            $job->setStatus(Job::STATUS_PROCESSING);
-            $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
+        // Process
+        try {
+            $this->lastResult = $this->resolve($job);
 
-            // Process
-            try {
-                $this->lastResult = $this->resolve($job);
+        } catch (\Throwable $t) {
 
-            } catch (\Throwable $t) {
+            $this->lastResult = new ResolvingResult($job, 2, null);
 
-                $this->lastResult = new ResolvingResult($job, 2, null);
+            $this->logger->error('Error during resolving process: ' . $t->getMessage(), [
+                'line'  => $t->getLine(),
+                'file'  => $t->getFile(),
+                'trace' => $t->getTrace()
+            ]);
 
-                $this->logger->error('Error during resolving process: ' . $t->getMessage(), [
-                    'line'  => $t->getLine(),
-                    'file'  => $t->getFile(),
-                    'trace' => $t->getTrace()
-                ]);
+            $job->setComposerOutput($job->getComposerOutput() . PHP_EOL . 'An error occured during resolving process.');
+            $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
+        }
 
-                $job->setComposerOutput($job->getComposerOutput() . PHP_EOL . 'An error occured during resolving process.');
-                $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
-            }
+        // Finished
+        $this->queue->updateJob($job);
+        $this->logger->info('Finished working on job ' . $job->getId());
 
-            // Finished
-            $predis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
-            $this->logger->info('Finished working on job ' . $job->getId());
-
-            if ($this->terminateAfterRun) {
-                $this->terminate();
-            }
+        if ($this->terminateAfterRun) {
+            $this->terminate();
         }
     }
 
@@ -360,8 +343,7 @@ class Resolver
      */
     private function getIO(Job $job)
     {
-        $predis    = $this->predis;
-        $ttl       = $this->ttl;
+        $queue    = $this->queue;
         $options   = $job->getComposerOptions();
         $options   = (array) ((!isset($options['options'])) ? [] : $options['options']);
         $verbosity = isset($options['verbosity']) ? $options['verbosity'] : OutputInterface::VERBOSITY_NORMAL;
@@ -371,8 +353,8 @@ class Resolver
         $input->setInteractive(false);
         $output = new JobOutput($verbosity);
         $output->setJob($job);
-        $output->setOnUpdate(function(Job $job) use ($predis, $ttl) {
-            $predis->setex($this->getJobKey($job->getId()), $ttl, json_encode($job));
+        $output->setOnUpdate(function(Job $job) use ($queue) {
+            $queue->updateJob($job);
         });
 
         if (isset($options['ansi']) && true == $options['ansi']) {
@@ -390,17 +372,5 @@ class Resolver
         }
 
         return $io;
-    }
-
-    /**
-     * Get the job key.
-     *
-     * @param string $jobId
-     *
-     * @return string
-     */
-    private function getJobKey(string $jobId) : string
-    {
-        return $this->queueKey . ':jobs:' . $jobId;
     }
 }

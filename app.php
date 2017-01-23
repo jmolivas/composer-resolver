@@ -1,5 +1,8 @@
 <?php
 
+use Toflar\ComposerResolver\Queue;
+use Toflar\ComposerResolver\Worker\Resolver;
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new \Toflar\ComposerResolver\Application();
@@ -26,13 +29,18 @@ $app->register(new Silex\Provider\MonologServiceProvider(), array(
     'monolog.logfile' => 'php://stdout',
 ));
 
-// Resolver
-$app['composer-resolver'] = new \Toflar\ComposerResolver\Worker\Resolver(
+// Queue
+$app['queue'] = new Queue(
     $app['predis'],
-    $app['logger'],
-    __DIR__ . '/jobs',
     $app['redis.jobs.queueKey'],
     $app['redis.jobs.ttl']
+);
+
+// Resolver
+$app['composer-resolver'] = new Resolver(
+    $app['queue'],
+    $app['logger'],
+    __DIR__ . '/jobs'
 );
 
 return $app;

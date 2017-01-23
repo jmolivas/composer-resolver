@@ -6,13 +6,13 @@ namespace Toflar\ComposerResolver\Controller;
 
 use Composer\Semver\VersionParser;
 use JsonSchema\Validator;
-use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Toflar\ComposerResolver\Job;
+use Toflar\ComposerResolver\Queue;
 
 /**
  * Class JobsController
@@ -23,9 +23,9 @@ use Toflar\ComposerResolver\Job;
 class JobsController
 {
     /**
-     * @var Client
+     * @var Queue
      */
-    private $redis;
+    private $queue;
 
     /**
      * @var UrlGeneratorInterface
@@ -36,16 +36,6 @@ class JobsController
      * @var LoggerInterface
      */
     private $logger;
-
-    /**
-     * @var string
-     */
-    private $queueKey;
-
-    /**
-     * @var int
-     */
-    private $ttl;
 
     /**
      * @var int
@@ -65,30 +55,24 @@ class JobsController
     /**
      * JobsController constructor.
      *
-     * @param Client                $redis
+     * @param Queue                 $queue
      * @param UrlGeneratorInterface $urlGenerator
      * @param LoggerInterface       $logger
-     * @param string                $queueKey
-     * @param int                   $ttl
      * @param int                   $atpj Average time needed per job in seconds
      * @param int                   $workers Number of workers
      * @param int                   $maxFactor Defines maximum jobs allowed on queue by a factor ($workers * $maxFactor)
      */
     public function __construct(
-        Client $redis,
+        Queue $queue,
         UrlGeneratorInterface $urlGenerator,
         LoggerInterface $logger,
-        string $queueKey,
-        int $ttl,
         int $atpj,
         int $workers,
         int $maxFactor
     ) {
-        $this->redis        = $redis;
+        $this->queue        = $queue;
         $this->urlGenerator = $urlGenerator;
         $this->logger       = $logger;
-        $this->queueKey     = $queueKey;
-        $this->ttl          = $ttl;
         $this->atpj         = $atpj;
         $this->workers      = $workers;
         $this->maxFactor    = $maxFactor;
@@ -101,7 +85,7 @@ class JobsController
      */
     public function indexAction() : Response
     {
-        $numberOfJobsInQueue = (int) $this->redis->llen($this->queueKey);
+        $numberOfJobsInQueue = $this->queue->getLength();
         $numbersOfWorkers    = $this->workers;
         $approxWaitingTime   = (int) ($numberOfJobsInQueue * $this->atpj / $numbersOfWorkers);
 
@@ -129,7 +113,7 @@ class JobsController
         // Check maximum allowed on queue
         $maximum = (int) $this->workers * $this->maxFactor;
 
-        if ($this->redis->llen($this->queueKey) >= $maximum) {
+        if ($this->queue->getLength() >= $maximum) {
             return new Response(
                 'Maximum number of jobs reached. Try again later.',
                 503
@@ -192,8 +176,7 @@ class JobsController
             'job' => $job
         ]);
 
-        $this->redis->setex($this->getJobKey($job->getId()), $this->ttl, json_encode($job));
-        $this->redis->rpush($this->queueKey, [$job->getId()]);
+        $this->queue->addJob($job);
 
         return new JsonResponse(
             $this->prepareResponseData($job),
@@ -213,7 +196,7 @@ class JobsController
      */
     public function getAction(string $jobId) : Response
     {
-        $job = $this->fetchJob($jobId);
+        $job = $this->queue->getJob($jobId);
 
         if (null === $job) {
             return new Response('Job not found.', 404);
@@ -247,7 +230,11 @@ class JobsController
      */
     public function deleteAction(string $jobId) : Response
     {
-        $this->redis->lrem($this->queueKey, 0, $jobId);
+        $job = $this->queue->getJob($jobId);
+
+        if (null !== $job) {
+            $this->queue->deleteJob($job);
+        }
 
         return new Response('Job stopped and deleted.', 200);
     }
@@ -261,7 +248,7 @@ class JobsController
      */
     public function getComposerLockAction(string $jobId) : Response
     {
-        $job = $this->fetchJob($jobId);
+        $job = $this->queue->getJob($jobId);
 
         if (null === $job) {
             return new Response('Job not found.', 404);
@@ -279,32 +266,13 @@ class JobsController
      */
     public function getComposerOutputAction(string $jobId) : Response
     {
-        $job = $this->fetchJob($jobId);
+        $job = $this->queue->getJob($jobId);
 
         if (null === $job) {
             return new Response('Job not found.', 404);
         }
 
         return new Response($job->getComposerOutput());
-    }
-
-    /**
-     * Fetch a job.
-     *
-     * @param string $jobId
-     *
-     * @return null|Job
-     */
-    private function fetchJob(string $jobId)
-    {
-        $jobData = $this->redis->get($this->getJobKey($jobId));
-
-        if (null === $jobData) {
-
-            return null;
-        }
-
-        return Job::createFromArray(json_decode($jobData, true));
     }
 
     /**
@@ -455,17 +423,5 @@ class JobsController
             'jobId'   => $job->getId(),
             'status'  => $job->getStatus()
         ];
-    }
-
-    /**
-     * Get the job key.
-     *
-     * @param string $jobId
-     *
-     * @return string
-     */
-    private function getJobKey(string $jobId) : string
-    {
-        return $this->queueKey . ':jobs:' . $jobId;
     }
 }

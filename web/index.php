@@ -9,11 +9,9 @@ $app->register(new Silex\Provider\ServiceControllerServiceProvider());
 
 $app['jobs.controller'] = function() use ($app) {
     return new \Toflar\ComposerResolver\Controller\JobsController(
-        $app['predis'],
+        $app['queue'],
         $app['url_generator'],
         $app['logger'],
-        $app['redis.jobs.queueKey'],
-        $app['redis.jobs.ttl'],
         $app['redis.jobs.atpj'],
         $app['redis.jobs.workers'],
         $app['redis.jobs.maxFactor']

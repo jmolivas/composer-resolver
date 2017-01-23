@@ -14,17 +14,16 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Toflar\ComposerResolver\Controller\JobsController;
 use Toflar\ComposerResolver\Job;
+use Toflar\ComposerResolver\Queue;
 
 class JobsControllerTest extends \PHPUnit_Framework_TestCase
 {
     public function testInstanceOf()
     {
         $controller = new JobsController(
-            $this->getRedis(),
+            $this->getQueue(),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             30,
             1,
             20
@@ -38,11 +37,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testIndexAction($atpj, $workers, $queueLength, array $expected)
     {
         $controller = new JobsController(
-            $this->getRedis($queueLength),
+            $this->getQueue($queueLength),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             $atpj,
             $workers,
             20
@@ -58,11 +55,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testPostActionWhenTooManyJobsOnQueue()
     {
         $controller = new JobsController(
-            $this->getRedis(200),
+            $this->getQueue(200),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -78,11 +73,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testPostActionWithInvalidJson()
     {
         $controller = new JobsController(
-            $this->getRedis(1),
+            $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -98,11 +91,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testPostActionWithInvalidComposerSchema()
     {
         $controller = new JobsController(
-            $this->getRedis(1),
+            $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -122,11 +113,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testPostActionWithInvalidExtra()
     {
         $controller = new JobsController(
-            $this->getRedis(1),
+            $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -159,11 +148,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testPostActionWithNoPlatformConfigProvided()
     {
         $controller = new JobsController(
-            $this->getRedis(1),
+            $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -184,16 +171,13 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     public function testPostActionWithValidPayloadButInvalidResolverHeader()
     {
         $controller = new JobsController(
-            $this->getRedis(1),
+            $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
         );
-
 
         $composerJson = [
             'name' => 'whatever',
@@ -215,79 +199,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testPostActionWithValidPayload()
     {
-        $queueKey = 'foobar';
-        $processingJob = null;
-        $logger = $this->getLogger();
-        $logger->expects($this->once())
-            ->method('debug')
-            ->with(
-                $this->equalTo('Created a new job and will push it to the queue now.'),
-                $this->callback(function($args) use (&$processingJob) {
-                    $processingJob = $args['job'];
-                    return $processingJob instanceof Job;
-                })
-            );
-
-        $redis = $this->getRedis(1);
-        $redis->expects($this->exactly(3))
-            ->method('__call')
-            ->withConsecutive(
-                // llen call
-                [
-                    $this->equalTo('llen'),
-                    $this->callback(function($args) use ($queueKey) {
-                        try {
-                            $this->assertEquals($queueKey, $args[0]);
-                            return true;
-                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                            return false;
-                        }
-                    })
-                ],
-                // setex call
-                [
-                    $this->equalTo('setex'),
-                    $this->callback(function($args) use ($queueKey) {
-                        try {
-                            $this->assertStringStartsWith($queueKey . ':jobs:', $args[0]);
-                            $this->assertInternalType('int', $args[1]);
-                            $this->assertJson($args[2]);
-                            return true;
-                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                            return false;
-                        }
-                    })
-                ],
-                // rpush call
-                [
-                    $this->equalTo('rpush'),
-                    $this->callback(function($args) {
-                        try {
-                            $this->assertInternalType('string', $args[0]);
-                            $this->assertInternalType('array', $args[1]);
-                            return true;
-                        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                            return false;
-                        }
-                    })
-                ]
-            );
-
-        $routes = new RouteCollection();
-        $routes->add('jobs_get', new Route('/jobs/{jobId}'));
-        $urlGenerator = new UrlGenerator($routes, new RequestContext());
-        
-        $controller = new JobsController(
-            $redis,
-            $urlGenerator,
-            $logger,
-            $queueKey,
-            600,
-            10,
-            1,
-            20
-        );
-
         $composerJson = [
             'name' => 'whatever',
             'description' => 'whatever',
@@ -324,16 +235,49 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             ]
         ];
 
+        $logger = $this->getLogger();
+        $logger->expects($this->once())
+            ->method('debug')
+            ->with(
+                $this->equalTo('Created a new job and will push it to the queue now.')
+            );
+
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->getQueue();
+
+        /** @var Job $jobRef */
+        $jobRef = null;
+
+        $queue->expects($this->once())
+            ->method('addJob')
+            ->willReturnCallback(function($job) use (&$jobRef, $queue) {
+                $jobRef = $job;
+                return $queue;
+            });
+
+        $routes = new RouteCollection();
+        $routes->add('jobs_get', new Route('/jobs/{jobId}'));
+        $urlGenerator = new UrlGenerator($routes, new RequestContext());
+
+        $controller = new JobsController(
+            $queue,
+            $urlGenerator,
+            $logger,
+            10,
+            1,
+            20
+        );
+
         $request = new Request([], [], [], [], [], [], json_encode($composerJson));
         $request->headers->set('Composer-Resolver-Command', '--profile -vvv --prefer-stable');
 
         $response = $controller->postAction($request);
 
-        /** @var Job $processingJob */
-        $this->assertInternalType('string', $processingJob->getId());
-        $this->assertJson($processingJob->getComposerJson());
+        $this->assertInternalType('string', $jobRef->getId());
+        $this->assertJson($jobRef->getComposerJson());
 
-        $json = json_decode($processingJob->getComposerJson(), true);
+        $json = json_decode($jobRef->getComposerJson(), true);
+
         // Assert repositories
         $this->assertCount(1, $json['repositories']);
         $this->assertEquals([[
@@ -341,7 +285,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'url' => 'http://whatever.com'
         ]], $json['repositories']);
 
-        $this->assertSame(Job::STATUS_QUEUED, $processingJob->getStatus());
+        $this->assertSame(Job::STATUS_QUEUED, $jobRef->getStatus());
         $this->assertEquals(['args' => ['packages' => []], 'options' => [
             'prefer-source' => false,
             'prefer-dist' => false,
@@ -353,26 +297,23 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'no-ansi' => false,
             'profile' => true,
             'verbosity' => 256
-        ]], $processingJob->getComposerOptions());
+        ]], $jobRef->getComposerOptions());
         $this->assertTrue($response->headers->has('Location'));
-        $this->assertSame('/jobs/' . $processingJob->getId(), $response->headers->get('Location'));
+        $this->assertSame('/jobs/' . $jobRef->getId(), $response->headers->get('Location'));
     }
 
     public function testGetActionWithInvalidJobId()
     {
-        $redis = $this->getRedis(1);
-        $redis->expects($this->once())
-            ->method('__call')
-            ->with($this->equalTo('get'))
-            ->willReturn(null)
-        ;
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->willReturn(null);
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -389,23 +330,14 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetAction(array $jobData, $expectedStatusCode, array $expectedContent)
     {
-        $queueKey = 'foobar';
-        $redis = $this->createMock(Client::class);
-        $redis->expects($this->any())
-            ->method('__call')
-            ->with(
-                $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData, $queueKey) {
-                    try {
-                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            )
-            ->willReturn(json_encode($jobData))
-        ;
+        $job = Job::createFromArray($jobData);
+
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with($job->getId())
+            ->willReturn($job);
 
         $routes = new RouteCollection();
         $routes->add('jobs_get_composer_lock', new Route('/jobs/{jobId}/composerLock'));
@@ -413,11 +345,9 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $urlGenerator = new UrlGenerator($routes, new RequestContext());
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $urlGenerator,
             $this->getLogger(),
-            $queueKey,
-            600,
             10,
             1,
             20
@@ -431,38 +361,30 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testDeleteAction()
     {
-        $jobId = 'foobar.id';
-        $queueKey = 'foobar';
+        $job = new Job('foobar', Job::STATUS_QUEUED, '');
 
-        $redis = $this->createMock(Client::class);
-        $redis->expects($this->exactly(1))
-            ->method('__call')
-            ->with(
-                $this->equalTo('lrem'),
-                $this->callback(function($args) use ($jobId) {
-                    try {
-                        $this->assertSame(0, $args[1]);
-                        $this->assertSame($jobId, $args[2]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            );
-        ;
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('foobar')
+            ->willReturn($job);
+
+        $queue->expects($this->once())
+            ->method('deleteJob')
+            ->with($job);
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            $queueKey,
-            600,
             10,
             1,
             20
         );
 
-        $response = $controller->deleteAction($jobId);
+        $response = $controller->deleteAction('foobar');
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertEquals('Job stopped and deleted.', $response->getContent());
@@ -470,19 +392,17 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetComposerLockActionWithInvalidJobId()
     {
-        $redis = $this->getRedis(1);
-        $redis->expects($this->once())
-            ->method('__call')
-            ->with($this->equalTo('get'))
-            ->willReturn(null)
-        ;
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('nonsenseId')
+            ->willReturn(null);
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -496,7 +416,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetComposerLockAction()
     {
-        $queueKey = 'whatever';
         $jobData = [
             'id' => 'uniq.id',
             'status' => Job::STATUS_FINISHED,
@@ -504,29 +423,19 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'composerLock' => '{"_readme":"foobar"}',
         ];
 
-        $redis = $this->createMock(Client::class);
-        $redis->expects($this->any())
-            ->method('__call')
-            ->with(
-                $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData, $queueKey) {
-                    try {
-                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            )
-            ->willReturn(json_encode($jobData))
-        ;
+        $job = Job::createFromArray($jobData);
+
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('uniq.id')
+            ->willReturn($job);
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            $queueKey,
-            600,
             10,
             1,
             20
@@ -540,19 +449,17 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetComposerOutputActionWithInvalidJobId()
     {
-        $redis = $this->getRedis(1);
-        $redis->expects($this->once())
-            ->method('__call')
-            ->with($this->equalTo('get'))
-            ->willReturn(null)
-        ;
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('nonsenseId')
+            ->willReturn(null);
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            'key',
-            600,
             10,
             1,
             20
@@ -566,7 +473,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetComposerOutputAction()
     {
-        $queueKey = 'whatever';
         $output = 'This is a nice' . PHP_EOL . 'command line output.';
         $jobData = [
             'id' => 'uniq.id',
@@ -576,29 +482,19 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             'composerOutput' => $output,
         ];
 
-        $redis = $this->createMock(Client::class);
-        $redis->expects($this->any())
-            ->method('__call')
-            ->with(
-                $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData, $queueKey) {
-                    try {
-                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            )
-            ->willReturn(json_encode($jobData))
-        ;
+        $job = Job::createFromArray($jobData);
+
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('uniq.id')
+            ->willReturn($job);
 
         $controller = new JobsController(
-            $redis,
+            $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
-            $queueKey,
-            600,
             10,
             1,
             20
@@ -689,17 +585,16 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function getRedis($queueLength = 1)
+    private function getQueue($queueLength = 1)
     {
-        $mock = $this->createMock(Client::class);
+        $mock = $this->getMockBuilder(Queue::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept()
+            ->getMock();
 
         $mock->expects($this->any())
-            ->method('__call')
-            ->willReturnCallback(function($method, $args) use ($queueLength) {
-                if ('llen' === $method) {
-                    return $queueLength;
-                }
-            });
+            ->method('getLength')
+            ->willReturn($queueLength);
 
         return $mock;
     }

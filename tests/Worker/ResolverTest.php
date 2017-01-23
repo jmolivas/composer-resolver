@@ -10,6 +10,7 @@ use Predis\Client;
 use Psr\Log\LoggerInterface;
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\JobIO;
+use Toflar\ComposerResolver\Queue;
 use Toflar\ComposerResolver\Worker\Resolver;
 
 class ResolverTest extends \PHPUnit_Framework_TestCase
@@ -17,18 +18,38 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
     public function testInstanceOf()
     {
         $resolver = new Resolver(
-            $this->createMock(Client::class),
+            $this->createMock(Queue::class),
             $this->createMock(LoggerInterface::class),
-            __DIR__,
-            'whatever',
-            5
+            __DIR__
         );
         $this->assertInstanceOf('Toflar\ComposerResolver\Worker\Resolver', $resolver);
     }
 
+    public function testRunIgnoresIfNoJobFound()
+    {
+        $queue = $this->createMock(Queue::class);
+
+        $queue
+            ->expects($this->once())
+            ->method('getNextJob')
+            ->willReturn(null);
+
+        // Test updateJob won't be called
+        $queue
+            ->expects($this->never())
+            ->method('updateJob');
+
+        $resolver = $this->getResolver(
+            $queue,
+            $logger = $this->createMock(Logger::class),
+            __DIR__
+        );
+
+        $resolver->run(5);
+    }
+
     public function testTerminateAfterRun()
     {
-        $queueKey = 'whatever';
         $pollingFrequency = 5;
         $jobData = [
             'id' => 'foobar.id',
@@ -37,11 +58,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         ];
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getQueue($pollingFrequency, $jobData),
             $logger = $this->createMock(Logger::class),
             __DIR__,
-            $queueKey,
-            5,
             true // this is the key for this test
         );
 
@@ -52,7 +71,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
     public function testLogsOnExceptionDuringRun()
     {
-        $queueKey = 'whatever';
         $pollingFrequency = 5;
         $jobData = [
             'id' => 'foobar.id',
@@ -72,11 +90,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
             );
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getQueue($pollingFrequency, $jobData),
             $logger,
-            __DIR__,
-            $queueKey,
-            5
+            __DIR__
         );
 
         $resolver->run($pollingFrequency);
@@ -84,7 +100,6 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
 
     public function testUnsuccessfulRun()
     {
-        $queueKey = 'whatever';
         $pollingFrequency = 5;
         $jobData = [
             'id' => 'foobar.id',
@@ -93,11 +108,9 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         ];
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getQueue($pollingFrequency, $jobData),
             $this->createMock(LoggerInterface::class),
-            __DIR__,
-            $queueKey,
-            5
+            __DIR__
         );
 
         $resolver->setMockRunResult(1);
@@ -116,15 +129,12 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
      */
     public function testSuccessfulRun($jobData, $installerAssertionProperties, $shouldDebugEnabled, $shouldBeDecorated)
     {
-        $queueKey = 'whatever';
         $pollingFrequency = 5;
 
         $resolver = $this->getResolver(
-            $this->getRedis($queueKey, $pollingFrequency, $jobData),
+            $this->getQueue($pollingFrequency, $jobData),
             $this->createMock(LoggerInterface::class),
-            __DIR__,
-            $queueKey,
-            5
+            __DIR__
         );
 
         $resolver->setMockRunResult(0);
@@ -326,41 +336,15 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function getRedis($queueKey, $pollingFrequency, $jobData)
+    private function getQueue($pollingFrequency, $jobData)
     {
-        $mock = $this->createMock(Client::class);
-        $mock->expects($this->at(0))
-            ->method('__call')
-            ->with(
-                $this->equalTo('blpop'),
-                $this->callback(function($args) use ($queueKey, $pollingFrequency) {
-                    try {
-                        $this->assertSame($queueKey, $args[0]);
-                        $this->assertSame($pollingFrequency, $args[1]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            )
-            ->willReturn(['whatever', $jobData['id']])
-        ;
+        $job = Job::createFromArray($jobData);
+        $mock = $this->createMock(Queue::class);
 
-        $mock->expects($this->at(1))
-            ->method('__call')
-            ->with(
-                $this->equalTo('get'),
-                $this->callback(function($args) use ($jobData, $queueKey) {
-                    try {
-                        $this->assertSame($queueKey . ':jobs:' . $jobData['id'], $args[0]);
-                        return true;
-                    } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
-                        return false;
-                    }
-                })
-            )
-            ->willReturn(json_encode($jobData))
-        ;
+        $mock->expects($this->any())
+            ->method('getNextJob')
+            ->with($pollingFrequency)
+            ->willReturn($job);
 
         return $mock;
     }
@@ -368,10 +352,10 @@ class ResolverTest extends \PHPUnit_Framework_TestCase
     /**
      * @return Resolver
      */
-    private function getResolver($redis, $logger, $jobsDir, $queueKey, $ttl, $shouldTerminate = false)
+    private function getResolver($queue, $logger, $jobsDir, $shouldTerminate = false)
     {
         $mock = $this->getMockBuilder(Resolver::class)
-            ->setConstructorArgs([$redis, $logger, $jobsDir, $queueKey, $ttl])
+            ->setConstructorArgs([$queue, $logger, $jobsDir])
             ->setMethods(['terminate'])
             ->getMock();
 
