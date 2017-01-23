@@ -74,9 +74,7 @@ class ValidateComposerJsonSchemaSubscriberTest extends \PHPUnit_Framework_TestCa
         $subscriber = new ValidateComposerJsonSchemaSubscriber();
 
         $subscriber->onPostAction($event);
-
-        $subscriber->onPostAction($event);
-
+        
         $this->assertNull($event->getResponse());
         $this->assertFalse($event->isPropagationStopped());
     }
@@ -127,8 +125,6 @@ class ValidateComposerJsonSchemaSubscriberTest extends \PHPUnit_Framework_TestCa
         $event = new PostActionEvent();
         $event->setRequest($request);
         $subscriber = new ValidateComposerJsonSchemaSubscriber();
-
-        $subscriber->onPostAction($event);
 
         $subscriber->onPostAction($event);
 
