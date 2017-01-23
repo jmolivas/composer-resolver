@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Toflar\ComposerResolver\Controller;
 
 use Composer\Semver\VersionParser;
-use JsonSchema\Validator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -122,14 +121,6 @@ class JobsController
         }
 
         $composerJson = $request->getContent();
-
-        $errors = $this->validateComposerJsonSchema($composerJson);
-        if (0 !== count($errors)) {
-            return new JsonResponse([
-                'msg'       => 'Your provided composer.json does not comply with the composer.json schema!',
-                'errors'    => $errors
-            ], 400);
-        }
 
         if (!$this->validatePlatformConfig($composerJson)) {
             return new Response(
@@ -265,39 +256,6 @@ class JobsController
         }
 
         return new Response($job->getComposerOutput());
-    }
-
-    /**
-     * Validates a composer.json string against the composer-schema.json
-     * and returns an array of errors in case there are any or an empty
-     * one if the json is valid.
-     *
-     * @param string $composerJson
-     *
-     * @return array
-     */
-    private function validateComposerJsonSchema(string $composerJson) : array
-    {
-        $errors             = [];
-        $composerJsonData   = json_decode($composerJson);
-
-        $schemaFile         = __DIR__ . '/../../vendor/composer/composer/res/composer-schema.json';
-        // Prepend with file:// only when not using a special schema already (e.g. in the phar)
-        if (false === strpos($schemaFile, '://')) {
-            $schemaFile = 'file://' . $schemaFile;
-        }
-        $schemaData         = (object) ['$ref' => $schemaFile];
-
-        $validator          = new Validator();
-        $validator->check($composerJsonData, $schemaData);
-
-        if (!$validator->isValid()) {
-            foreach ((array) $validator->getErrors() as $error) {
-                $errors[] = ($error['property'] ? $error['property'] . ' : ' : '') . $error['message'];
-            }
-        }
-
-        return $errors;
     }
 
     /**

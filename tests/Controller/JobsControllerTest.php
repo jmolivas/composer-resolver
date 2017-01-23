@@ -81,29 +81,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $controller->postAction($request);
     }
 
-    public function testPostActionWithInvalidComposerSchema()
-    {
-        $controller = new JobsController(
-            $this->getQueue(1),
-            $this->getUrlGenerator(),
-            $this->getLogger(),
-            $this->getEventDispatcher(),
-            10,
-            1,
-            20
-        );
-
-        $request = new Request([], [], [], [], [], [], '{"I am valid":"json","but I have":"no relation to the composer","schema":{"at":"all"}}');
-        $response = $controller->postAction($request);
-
-        $this->assertSame(400, $response->getStatusCode());
-
-        $json = json_decode($response->getContent(), true);
-
-        $this->assertSame('Your provided composer.json does not comply with the composer.json schema!', $json['msg']);
-        $this->assertTrue(count($json['errors']) > 0);
-    }
-
     public function testPostActionWithInvalidExtra()
     {
         $controller = new JobsController(
@@ -261,16 +238,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInternalType('string', $jobRef->getId());
         $this->assertJson($jobRef->getComposerJson());
-
-        $json = json_decode($jobRef->getComposerJson(), true);
-
-        // Assert repositories
-        $this->assertCount(1, $json['repositories']);
-        $this->assertEquals([[
-            'type' => 'vcs',
-            'url' => 'http://whatever.com'
-        ]], $json['repositories']);
-
         $this->assertSame(Job::STATUS_QUEUED, $jobRef->getStatus());
         $this->assertEquals(['args' => ['packages' => []], 'options' => [
             'prefer-source' => false,
