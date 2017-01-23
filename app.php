@@ -1,14 +1,17 @@
 <?php
 
+use Predis\Silex\ClientServiceProvider;
+use Silex\Provider\MonologServiceProvider;
+use Toflar\ComposerResolver\Application;
 use Toflar\ComposerResolver\Queue;
 use Toflar\ComposerResolver\Worker\Resolver;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new \Toflar\ComposerResolver\Application();
+$app = new Application();
 
 // Redis
-$app->register(new Predis\Silex\ClientServiceProvider(), [
+$app->register(new ClientServiceProvider(), [
     'predis.parameters' => 'redis:6379',
     'predis.options'    => [
         'prefix'  => 'composer-resolver:',
@@ -25,7 +28,7 @@ $app['redis.jobs.workers']                = $app->env('COMPOSER_RESOLVER_WORKERS
 $app['worker.terminate_after_run']        = $app->env('COMPOSER_RESOLVER_TERMINATE_AFTER_RUN', true, 'bool');
 
 // Log everything to stout
-$app->register(new Silex\Provider\MonologServiceProvider(), array(
+$app->register(new MonologServiceProvider(), array(
     'monolog.logfile' => 'php://stdout',
 ));
 

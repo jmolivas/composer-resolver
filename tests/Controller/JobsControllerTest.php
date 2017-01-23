@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Toflar\ComposerResolver\Tests\Controller;
 
-use Predis\Client;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -24,6 +24,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $this->getQueue(),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             30,
             1,
             20
@@ -40,6 +41,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $this->getQueue($queueLength),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             $atpj,
             $workers,
             20
@@ -52,30 +54,13 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $json);
     }
 
-    public function testPostActionWhenTooManyJobsOnQueue()
-    {
-        $controller = new JobsController(
-            $this->getQueue(200),
-            $this->getUrlGenerator(),
-            $this->getLogger(),
-            10,
-            1,
-            20
-        );
-
-        $request = new Request();
-        $response = $controller->postAction($request);
-
-        $this->assertSame(503, $response->getStatusCode());
-        $this->assertSame('Maximum number of jobs reached. Try again later.', $response->getContent());
-    }
-
     public function testPostActionWithInvalidJson()
     {
         $controller = new JobsController(
             $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -94,6 +79,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -116,6 +102,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -151,6 +138,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -174,6 +162,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $this->getQueue(1),
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -263,6 +252,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $urlGenerator,
             $logger,
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -314,6 +304,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -348,6 +339,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $urlGenerator,
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -379,6 +371,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -403,6 +396,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -436,6 +430,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -460,6 +455,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -495,6 +491,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             $queue,
             $this->getUrlGenerator(),
             $this->getLogger(),
+            $this->getEventDispatcher(),
             10,
             1,
             20
@@ -608,6 +605,12 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
     private function getLogger()
     {
         $mock = $this->createMock(LoggerInterface::class);
+        return $mock;
+    }
+
+    private function getEventDispatcher()
+    {
+        $mock = $this->createMock(EventDispatcherInterface::class);
         return $mock;
     }
 }

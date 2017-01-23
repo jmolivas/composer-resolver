@@ -7,10 +7,12 @@ namespace Toflar\ComposerResolver\Controller;
 use Composer\Semver\VersionParser;
 use JsonSchema\Validator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Toflar\ComposerResolver\Event\PostActionEvent;
 use Toflar\ComposerResolver\Job;
 use Toflar\ComposerResolver\Queue;
 
@@ -38,6 +40,11 @@ class JobsController
     private $logger;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * @var int
      */
     private $atpj;
@@ -48,11 +55,6 @@ class JobsController
     private $workers;
 
     /**
-     * @var int
-     */
-    private $maxFactor;
-
-    /**
      * JobsController constructor.
      *
      * @param Queue                 $queue
@@ -60,22 +62,21 @@ class JobsController
      * @param LoggerInterface       $logger
      * @param int                   $atpj Average time needed per job in seconds
      * @param int                   $workers Number of workers
-     * @param int                   $maxFactor Defines maximum jobs allowed on queue by a factor ($workers * $maxFactor)
      */
     public function __construct(
         Queue $queue,
         UrlGeneratorInterface $urlGenerator,
         LoggerInterface $logger,
+        EventDispatcherInterface $eventDispatcher,
         int $atpj,
-        int $workers,
-        int $maxFactor
+        int $workers
     ) {
-        $this->queue        = $queue;
-        $this->urlGenerator = $urlGenerator;
-        $this->logger       = $logger;
-        $this->atpj         = $atpj;
-        $this->workers      = $workers;
-        $this->maxFactor    = $maxFactor;
+        $this->queue            = $queue;
+        $this->urlGenerator     = $urlGenerator;
+        $this->logger           = $logger;
+        $this->eventDispatcher  = $eventDispatcher;
+        $this->atpj             = $atpj;
+        $this->workers          = $workers;
     }
 
     /**
@@ -110,14 +111,14 @@ class JobsController
      */
     public function postAction(Request $request) : Response
     {
-        // Check maximum allowed on queue
-        $maximum = (int) $this->workers * $this->maxFactor;
+        $event = new PostActionEvent(PostActionEvent::EVENT_NAME);
+        $event->setRequest($request);
 
-        if ($this->queue->getLength() >= $maximum) {
-            return new Response(
-                'Maximum number of jobs reached. Try again later.',
-                503
-            );
+        $this->eventDispatcher->dispatch(PostActionEvent::EVENT_NAME, $event);
+
+        if (null !== ($response = $event->getResponse())) {
+
+            return $response;
         }
 
         $composerJson = $request->getContent();
