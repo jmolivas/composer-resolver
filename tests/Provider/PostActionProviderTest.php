@@ -12,6 +12,7 @@ use Toflar\ComposerResolver\EventListener\CheckInvalidJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\QueueLengthLimitSubscriber;
 use Toflar\ComposerResolver\EventListener\SanitizeComposerJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\ValidateComposerJsonSchemaSubscriber;
+use Toflar\ComposerResolver\EventListener\ValidatePlatformConfigSubscriber;
 use Toflar\ComposerResolver\Provider\PostActionProvider;
 use Toflar\ComposerResolver\Queue;
 
@@ -61,5 +62,6 @@ class PostActionProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(CheckInvalidJsonSubscriber::class, $listeners[1][0]);
         $this->assertInstanceOf(SanitizeComposerJsonSubscriber::class, $listeners[2][0]);
         $this->assertInstanceOf(ValidateComposerJsonSchemaSubscriber::class, $listeners[3][0]);
+        $this->assertInstanceOf(ValidatePlatformConfigSubscriber::class, $listeners[4][0]);
     }
 }

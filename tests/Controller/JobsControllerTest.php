@@ -117,30 +117,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('Your composer.json does not provide a valid configuration for the extras definition for the key "composer-resolver".', $response->getContent());
     }
 
-    public function testPostActionWithNoPlatformConfigProvided()
-    {
-        $controller = new JobsController(
-            $this->getQueue(1),
-            $this->getUrlGenerator(),
-            $this->getLogger(),
-            $this->getEventDispatcher(),
-            10,
-            1,
-            20
-        );
-
-        $composerJson = [
-            'name' => 'whatever',
-            'description' => 'whatever'
-        ];
-
-        $request = new Request([], [], [], [], [], [], json_encode($composerJson));
-        $response = $controller->postAction($request);
-
-        $this->assertSame(400, $response->getStatusCode());
-        $this->assertSame('Your composer.json must provide a platform configuration (see https://getcomposer.org/doc/06-config.md#platform). Otherwise, you will not get the correct dependencies for your specific platform needs.', $response->getContent());
-    }
-
     public function testPostActionWithValidPayloadButInvalidResolverHeader()
     {
         $controller = new JobsController(

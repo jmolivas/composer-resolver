@@ -122,13 +122,6 @@ class JobsController
 
         $composerJson = $request->getContent();
 
-        if (!$this->validatePlatformConfig($composerJson)) {
-            return new Response(
-                'Your composer.json must provide a platform configuration (see https://getcomposer.org/doc/06-config.md#platform). Otherwise, you will not get the correct dependencies for your specific platform needs.',
-                400
-            );
-        }
-
         if (!$this->validateExtras($composerJson)) {
             return new Response(
                 'Your composer.json does not provide a valid configuration for the extras definition for the key "composer-resolver".',
@@ -256,28 +249,6 @@ class JobsController
         }
 
         return new Response($job->getComposerOutput());
-    }
-
-    /**
-     * As the composer resolver resolves a composer.json for a different project
-     * the provided composer.json file MUST include the platform configuration
-     * otherwise dependencies will be resolved completely pointless.
-     *
-     * @param string $composerJson
-     *
-     * @return bool
-     */
-    private function validatePlatformConfig(string $composerJson) : bool
-    {
-        $composerJsonData   = json_decode($composerJson, true);
-
-        // Check for presence of platform config
-        if (!isset($composerJsonData['config']['platform']) || !is_array($composerJsonData['config']['platform'])) {
-
-            return false;
-        }
-
-        return true;
     }
 
     /**
