@@ -19,7 +19,7 @@ $app['jobs.controller'] = function() use ($app) {
         $app['queue'],
         $app['url_generator'],
         $app['logger'],
-        $app['event-dispatcher'],
+        $app['dispatcher'],
         $app['redis.jobs.atpj'],
         $app['redis.jobs.workers']
     );
