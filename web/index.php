@@ -33,6 +33,8 @@ $app->get('/jobs/{jobId}', 'jobs.controller:getAction')
     ->bind('jobs_get');
 $app->delete('/jobs/{jobId}', 'jobs.controller:deleteAction')
     ->bind('jobs_delete');
+$app->get('/jobs/{jobId}/composerJson', 'jobs.controller:getOriginalComposerJsonAction')
+    ->bind('jobs_get_composer_json');
 $app->get('/jobs/{jobId}/composerLock', 'jobs.controller:getComposerLockAction')
     ->bind('jobs_get_composer_lock');
 $app->get('/jobs/{jobId}/composerOutput', 'jobs.controller:getComposerOutputAction')

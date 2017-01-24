@@ -48,7 +48,12 @@ class Job implements \JsonSerializable
     /**
      * @var string
      */
-    private $composerJson;
+    private $composerJson = '';
+
+    /**
+     * @var string
+     */
+    private $originalComposerJson = '';
 
     /**
      * @var string
@@ -172,6 +177,26 @@ class Job implements \JsonSerializable
     public function setComposerJson(string $composerJson) : self
     {
         $this->composerJson = $composerJson;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOriginalComposerJson(): string
+    {
+        return $this->originalComposerJson;
+    }
+
+    /**
+     * @param string $originalComposerJson
+     *
+     * @return Job
+     */
+    public function setOriginalComposerJson($originalComposerJson) : self
+    {
+        $this->originalComposerJson = $originalComposerJson;
 
         return $this;
     }
@@ -305,6 +330,7 @@ class Job implements \JsonSerializable
             'id'                    => $this->id,
             'status'                => $this->status,
             'composerJson'          => $this->composerJson,
+            'originalComposerJson'  => $this->originalComposerJson,
             'composerLock'          => $this->composerLock,
             'composerOutput'        => $this->composerOutput,
             'composerOptions'       => $this->composerOptions,
@@ -344,6 +370,10 @@ class Job implements \JsonSerializable
 
         if (isset($array['composerOutput'])) {
             $job->setComposerOutput((string) $array['composerOutput']);
+        }
+
+        if (isset($array['originalComposerJson'])) {
+            $job->setOriginalComposerJson((string) $array['originalComposerJson']);
         }
 
         if (isset($array['composerOptions']) && is_array($array['composerOptions'])) {

@@ -56,6 +56,7 @@ Content-Type: application/json; charset=UTF-8
     "jobId": "5241c3603853e648127910e71ea235b7",
     "status" "waiting",
     "links": [
+        "composerJson": "jobs/5241c3603853e648127910e71ea235b7/composerJson",
         "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
         "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
     ]
@@ -84,6 +85,7 @@ Content-Type: application/json; charset=UTF-8
     "jobId": "5241c3603853e648127910e71ea235b7",
     "status" "running",
     "links": [
+        "composerJson": "jobs/5241c3603853e648127910e71ea235b7/composerJson",
         "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
         "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
     ]
@@ -104,6 +106,7 @@ Content-Type: application/json; charset=UTF-8
     "jobId": "5241c3603853e648127910e71ea235b7",
     "status" "finished",
     "links": [
+        "composerJson": "jobs/5241c3603853e648127910e71ea235b7/composerJson",
         "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
         "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
     ]
@@ -127,6 +130,7 @@ Content-Type: application/json; charset=UTF-8
     "jobId": "5241c3603853e648127910e71ea235b7",
     "status" "finished_with_errors",
     "links": [
+        "composerJson": "jobs/5241c3603853e648127910e71ea235b7/composerJson",
         "composerLock": "jobs/5241c3603853e648127910e71ea235b7/composerLock",
         "composerOutput": "jobs/5241c3603853e648127910e71ea235b7/composerOutput",
     ]

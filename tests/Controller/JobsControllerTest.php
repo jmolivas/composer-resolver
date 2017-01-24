@@ -226,6 +226,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($job);
 
         $routes = new RouteCollection();
+        $routes->add('jobs_get_composer_json', new Route('/jobs/{jobId}/composerJson'));
         $routes->add('jobs_get_composer_lock', new Route('/jobs/{jobId}/composerLock'));
         $routes->add('jobs_get_composer_output', new Route('/jobs/{jobId}/composerOutput'));
         $urlGenerator = new UrlGenerator($routes, new RequestContext());
@@ -276,6 +277,66 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertEquals('Job stopped and deleted.', $response->getContent());
+    }
+
+    public function testGetComposerJsonActionWithInvalidJobId()
+    {
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('nonsenseId')
+            ->willReturn(null);
+
+        $controller = new JobsController(
+            $queue,
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            $this->getEventDispatcher(),
+            10,
+            1,
+            20
+        );
+
+        $response = $controller->getOriginalComposerJsonAction('nonsenseId');
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame('Job not found.', $response->getContent());
+    }
+
+    public function testGetComposerJsonAction()
+    {
+        $jobData = [
+            'id' => 'uniq.id',
+            'status' => Job::STATUS_FINISHED,
+            'originalComposerJson' => '{"name":"foobar"},{"original"}',
+            'composerJson' => '{"name":"foobar"}',
+            'composerLock' => '{"_readme":"foobar"}',
+        ];
+
+        $job = Job::createFromArray($jobData);
+
+        /** @var Queue|\PHPUnit_Framework_MockObject_MockObject $queue */
+        $queue = $this->createMock(Queue::class);
+        $queue->expects($this->once())
+            ->method('getJob')
+            ->with('uniq.id')
+            ->willReturn($job);
+
+        $controller = new JobsController(
+            $queue,
+            $this->getUrlGenerator(),
+            $this->getLogger(),
+            $this->getEventDispatcher(),
+            10,
+            1,
+            20
+        );
+
+        $response = $controller->getOriginalComposerJsonAction($jobData['id']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('{"name":"foobar"},{"original"}', $response->getContent());
     }
 
     public function testGetComposerLockActionWithInvalidJobId()
@@ -451,6 +512,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
                     'jobId' => 'foobar.uuid',
                     'status' => Job::STATUS_PROCESSING,
                     'links' => [
+                        'composerJson' => '/jobs/foobar.uuid/composerJson',
                         'composerLock' => '/jobs/foobar.uuid/composerLock',
                         'composerOutput' => '/jobs/foobar.uuid/composerOutput'
 
@@ -468,6 +530,7 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
                     'jobId' => 'foobar.uuid',
                     'status' => Job::STATUS_FINISHED,
                     'links' => [
+                        'composerJson' => '/jobs/foobar.uuid/composerJson',
                         'composerLock' => '/jobs/foobar.uuid/composerLock',
                         'composerOutput' => '/jobs/foobar.uuid/composerOutput'
 

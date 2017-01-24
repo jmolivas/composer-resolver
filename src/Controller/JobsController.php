@@ -109,6 +109,8 @@ class JobsController
      */
     public function postAction(Request $request) : Response
     {
+        $originalComposerJson = $request->getContent();
+
         $event = new PostActionEvent(PostActionEvent::EVENT_NAME);
         $event->setRequest($request);
 
@@ -124,6 +126,7 @@ class JobsController
         // Create the job
         $jobId = uniqid('', true);
         $job   = new Job($jobId, Job::STATUS_QUEUED, $composerJson);
+        $job->setOriginalComposerJson($originalComposerJson);
 
         // Check for job options
         if ($request->headers->has('Composer-Resolver-Command')) {
@@ -175,6 +178,9 @@ class JobsController
 
         // Add locations for composer.lock and output
         $data['links'] = [
+            'composerJson'  => $this->urlGenerator->generate('jobs_get_composer_json', [
+                'jobId' => $job->getId()
+            ]),
             'composerLock'  => $this->urlGenerator->generate('jobs_get_composer_lock', [
                 'jobId' => $job->getId()
             ]),
@@ -205,6 +211,24 @@ class JobsController
         }
 
         return new Response('Job stopped and deleted.', 200);
+    }
+
+    /**
+     * Returns the composer.json that was supplied for a given job id.
+     *
+     * @param string $jobId
+     *
+     * @return Response
+     */
+    public function getOriginalComposerJsonAction(string $jobId) : Response
+    {
+        $job = $this->queue->getJob($jobId);
+
+        if (null === $job) {
+            return new Response('Job not found.', 404);
+        }
+
+        return new JsonResponse($job->getOriginalComposerJson(), 200, [], true);
     }
 
     /**
