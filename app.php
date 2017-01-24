@@ -26,6 +26,7 @@ $app['redis.jobs.atpj']                   = $app->env('COMPOSER_RESOLVER_JOBS_AT
 $app['redis.jobs.maxFactor']              = $app->env('COMPOSER_RESOLVER_JOBS_MAX_FACTOR', 20, 'int');
 $app['redis.jobs.workers']                = $app->env('COMPOSER_RESOLVER_WORKERS', 1, 'int');
 $app['worker.terminate_after_run']        = $app->env('COMPOSER_RESOLVER_TERMINATE_AFTER_RUN', true, 'bool');
+$app['web.required_packages_expression']  = $app->env('COMPOSER_RESOLVER_REQUIRED_PACKAGES_EXPRESSION', 'true');
 
 // Log everything to stout
 $app->register(new MonologServiceProvider(), array(

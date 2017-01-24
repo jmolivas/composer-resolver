@@ -13,6 +13,7 @@ use Toflar\ComposerResolver\EventListener\QueueLengthLimitSubscriber;
 use Toflar\ComposerResolver\EventListener\SanitizeComposerJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\ValidateComposerJsonSchemaSubscriber;
 use Toflar\ComposerResolver\EventListener\ValidateExtrasSubscriber;
+use Toflar\ComposerResolver\EventListener\ValidateForPackagesSubscriber;
 use Toflar\ComposerResolver\EventListener\ValidatePlatformConfigSubscriber;
 use Toflar\ComposerResolver\Provider\PostActionProvider;
 use Toflar\ComposerResolver\Queue;
@@ -51,6 +52,7 @@ class PostActionProviderTest extends \PHPUnit_Framework_TestCase
         );
         $app['redis.jobs.workers'] = 1;
         $app['redis.jobs.maxFactor'] = 5;
+        $app['web.required_packages_expression'] = 'true';
         $dispatcher = new EventDispatcher();
 
         $provider = new PostActionProvider();
@@ -65,5 +67,6 @@ class PostActionProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(ValidateComposerJsonSchemaSubscriber::class, $listeners[3][0]);
         $this->assertInstanceOf(ValidatePlatformConfigSubscriber::class, $listeners[4][0]);
         $this->assertInstanceOf(ValidateExtrasSubscriber::class, $listeners[5][0]);
+        $this->assertInstanceOf(ValidateForPackagesSubscriber::class, $listeners[6][0]);
     }
 }

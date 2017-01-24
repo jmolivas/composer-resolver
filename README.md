@@ -301,6 +301,7 @@ working:
     * `COMPOSER_RESOLVER_JOBS_MAX_FACTOR` - used to limit the number of jobs. It is a factor and relates to `COMPOSER_RESOLVER_WORKERS`. If you have `10` workers and specified a factor of `20` the maximum allowed jobs on the queue equals `200` (`10 * 20`). (default `20`)
     * `COMPOSER_RESOLVER_JOBS_ATPJ` - specifies the "average time per job" needed to complete in seconds. Used for the current waiting time feature. (default `60`)
     * `COMPOSER_RESOLVER_WORKERS` - specifies the number of workers in place. Used for the current waiting time feature. (default `1`)
+    * `COMPOSER_RESOLVER_REQUIRED_PACKAGES_EXPRESSION` - allows for any Symfony Expression to filter for packages (`require` bundles are available as `p`). If you e.g. only want to allow resolving when `vendor/bundle` is being required you pass `\"vendor/bundle\" in p` here (note the escaping as it is an env variable). (default `true` = everything's allowed)
 
 * On the `worker` container/service:
     * `COMPOSER_RESOLVER_JOBS_QUEUE_KEY` - specifies the jobs queue name used for Redis (default `jobs-queue`)
