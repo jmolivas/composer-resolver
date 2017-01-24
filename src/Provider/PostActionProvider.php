@@ -12,6 +12,7 @@ use Toflar\ComposerResolver\EventListener\CheckInvalidJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\QueueLengthLimitSubscriber;
 use Toflar\ComposerResolver\EventListener\SanitizeComposerJsonSubscriber;
 use Toflar\ComposerResolver\EventListener\ValidateComposerJsonSchemaSubscriber;
+use Toflar\ComposerResolver\EventListener\ValidateExtrasSubscriber;
 use Toflar\ComposerResolver\EventListener\ValidatePlatformConfigSubscriber;
 
 class PostActionProvider implements ServiceProviderInterface, EventListenerProviderInterface
@@ -40,6 +41,9 @@ class PostActionProvider implements ServiceProviderInterface, EventListenerProvi
         $app['listener.validate_platform_config'] = function (Container $app) {
             return new ValidatePlatformConfigSubscriber();
         };
+        $app['listener.validate_extras'] = function (Container $app) {
+            return new ValidateExtrasSubscriber();
+        };
     }
 
     /**
@@ -52,5 +56,6 @@ class PostActionProvider implements ServiceProviderInterface, EventListenerProvi
         $dispatcher->addSubscriber($app['listener.sanitize_composer_json']);
         $dispatcher->addSubscriber($app['listener.validate_composer_json_schema']);
         $dispatcher->addSubscriber($app['listener.validate_platform_config']);
+        $dispatcher->addSubscriber($app['listener.validate_extras']);
     }
 }

@@ -81,42 +81,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
         $controller->postAction($request);
     }
 
-    public function testPostActionWithInvalidExtra()
-    {
-        $controller = new JobsController(
-            $this->getQueue(1),
-            $this->getUrlGenerator(),
-            $this->getLogger(),
-            $this->getEventDispatcher(),
-            10,
-            1,
-            20
-        );
-
-        $composerJson = [
-            'name' => 'whatever',
-            'description' => 'whatever',
-            'config' => [
-                'platform' => [
-                    'php' => '7.0.11'
-                ],
-            ],
-            'extra' => [
-                'composer-resolver' => [
-                    'installed-repository' => [
-                        'i-am-so-wrong' => 'I am wrong'
-                    ]
-                ]
-            ]
-        ];
-
-        $request = new Request([], [], [], [], [], [], json_encode($composerJson));
-        $response = $controller->postAction($request);
-
-        $this->assertSame(400, $response->getStatusCode());
-        $this->assertSame('Your composer.json does not provide a valid configuration for the extras definition for the key "composer-resolver".', $response->getContent());
-    }
-
     public function testPostActionWithValidPayloadButInvalidResolverHeader()
     {
         $controller = new JobsController(
@@ -163,14 +127,6 @@ class JobsControllerTest extends \PHPUnit_Framework_TestCase
                     'url' => 'http://whatever.com'
                 ],
             ],
-            // Check for extra
-            'extra' => [
-                'composer-resolver' => [
-                    'installed-repository' => [
-                        'my/package' => '1.0.0'
-                    ]
-                ]
-            ]
         ];
 
         $logger = $this->getLogger();

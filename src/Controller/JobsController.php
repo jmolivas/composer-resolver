@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Toflar\ComposerResolver\Controller;
 
-use Composer\Semver\VersionParser;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -121,13 +120,6 @@ class JobsController
         }
 
         $composerJson = $request->getContent();
-
-        if (!$this->validateExtras($composerJson)) {
-            return new Response(
-                'Your composer.json does not provide a valid configuration for the extras definition for the key "composer-resolver".',
-                400
-            );
-        }
 
         // Create the job
         $jobId = uniqid('', true);
@@ -249,44 +241,6 @@ class JobsController
         }
 
         return new Response($job->getComposerOutput());
-    }
-
-    /**
-     * You can provide additional data for the composer resolver via the extra
-     * section of the composer.json. This has to be valid though.
-     *
-     * @param string $composerJson
-     *
-     * @return bool
-     */
-    private function validateExtras(string $composerJson) : bool
-    {
-        $composerJsonData   = json_decode($composerJson, true);
-
-        if (!isset($composerJsonData['extra'])
-            || !isset($composerJsonData['extra']['composer-resolver'])
-        ) {
-
-            return true;
-        }
-
-        $extra = $composerJsonData['extra']['composer-resolver'];
-
-        // Validate "installed-repository"
-        if (isset($extra['installed-repository'])) {
-            $versionParser = new VersionParser();
-
-            foreach ((array) $extra['installed-repository'] as $package => $version) {
-                try {
-                    $versionParser->parseConstraints($version);
-                } catch (\Exception $e) {
-
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     /**
