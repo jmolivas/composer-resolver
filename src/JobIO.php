@@ -14,6 +14,29 @@ use Composer\IO\ConsoleIO;
 class JobIO extends ConsoleIO
 {
     /**
+     * @var float
+     */
+    private $startTime;
+
+    /**
+     * @return float|null
+     */
+    public function getStartTime()
+    {
+        return $this->startTime;
+    }
+
+    /**
+     * @param float $startTime
+     */
+    public function enableDebugging($startTime)
+    {
+        $this->startTime = $startTime;
+        parent::enableDebugging($startTime);
+    }
+
+
+    /**
      * @return \Symfony\Component\Console\Output\OutputInterface
      */
     public function getOutput()

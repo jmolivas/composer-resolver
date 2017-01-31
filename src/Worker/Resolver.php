@@ -224,7 +224,11 @@ class Resolver
             $job->setStatus(Job::STATUS_FINISHED_WITH_ERRORS);
         }
 
-        $job->setComposerOutput($job->getComposerOutput() . PHP_EOL . 'Finished Composer Cloud resolving.');
+        if ($startTime = $io->getStartTime()) {
+            $io->write('<info>Memory usage: '.round(memory_get_usage() / 1024 / 1024, 2).'MB (peak: '.round(memory_get_peak_usage() / 1024 / 1024, 2).'MB), time: '.round(microtime(true) - $startTime, 2).'s');
+        }
+
+        $io->write('Finished Composer Cloud resolving.');
 
         $this->logger->info('Resolved job ' . $job->getId());
 
