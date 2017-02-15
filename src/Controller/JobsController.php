@@ -121,6 +121,9 @@ class JobsController
             return $response;
         }
 
+        // Take modified request
+        $request = $event->getRequest();
+
         $composerJson = $request->getContent();
 
         // Create the job
